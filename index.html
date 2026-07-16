@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Explore City League golf standings, weekly movement, player scoring, and handicap rankings."
+    />
+    <meta name="theme-color" content="#163d32" />
+    <title>City League Stats</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+    <script src="js/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to stats</a>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="City League Stats home">
+        <span class="brand-mark" aria-hidden="true"><span>CL</span></span>
+        <span>
+          <strong>City League</strong>
+          <small>Golf stats</small>
+        </span>
+      </a>
+
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a href="#standings">Standings</a>
+        <a href="#players">Players</a>
+        <a href="#sandbag">Rankings</a>
+      </nav>
+
+      <div class="header-tools">
+        <div class="global-search">
+          <label class="sr-only" for="global-search">Search teams or players</label>
+          <span aria-hidden="true" class="search-icon"></span>
+          <input
+            id="global-search"
+            type="search"
+            placeholder="Find team or player"
+            autocomplete="off"
+            aria-expanded="false"
+            aria-controls="search-results"
+          />
+          <div id="search-results" class="search-results" role="listbox" hidden></div>
+        </div>
+        <label class="season-control" for="season-select">
+          <span>Season</span>
+          <select id="season-select" aria-label="Select season"></select>
+        </label>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <p class="eyebrow eyebrow-light">Jefferson City League</p>
+          <h1>Every round tells<br />a better story.</h1>
+          <p class="hero-intro">
+            Follow the table, see who is moving, and drill from team totals all
+            the way down to a player’s latest nine.
+          </p>
+          <a class="hero-link" href="#standings">
+            Explore the standings <span aria-hidden="true">↓</span>
+          </a>
+        </div>
+
+        <div class="hero-scorecard" aria-label="Season at a glance">
+          <div class="scorecard-topline">
+            <span id="hero-season">Current season</span>
+            <span id="hero-as-of">Loading…</span>
+          </div>
+          <div class="hero-leader">
+            <span class="leader-place">01</span>
+            <div>
+              <span class="stat-label">Current leader</span>
+              <strong id="hero-leader">—</strong>
+            </div>
+            <span class="leader-total" id="hero-leader-total">—</span>
+          </div>
+          <div class="hero-metrics">
+            <div><strong id="hero-teams">—</strong><span>Teams</span></div>
+            <div><strong id="hero-weeks">—</strong><span>Weeks</span></div>
+            <div><strong id="hero-players">—</strong><span>Players used</span></div>
+          </div>
+          <div class="scorecard-stripes" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <div id="load-error" class="load-error page-shell" role="alert" hidden>
+        <strong>Couldn’t load the scorecard.</strong>
+        <span>Serve this folder with a small local web server and refresh.</span>
+      </div>
+
+      <section id="standings" class="section page-shell">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="eyebrow">Season table</p>
+            <h2>Standings, beyond the total.</h2>
+            <p>
+              Commissioner team scores are net. Player round scores are gross;
+              net values below use each player’s current listed handicap.
+            </p>
+          </div>
+          <div class="section-meta">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span id="standings-updated">Updated —</span>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="card-toolbar">
+            <div>
+              <h3>Team detail</h3>
+              <p>Click a heading to sort or a team to inspect its players.</p>
+            </div>
+            <label class="field search-field" for="team-table-search">
+              <span class="sr-only">Filter teams</span>
+              <span class="search-icon" aria-hidden="true"></span>
+              <input id="team-table-search" type="search" placeholder="Filter teams" />
+            </label>
+          </div>
+          <div class="table-scroll">
+            <table id="standings-table">
+              <caption class="sr-only">
+                Season standings with roster, handicap, gross, and net scoring ranges
+              </caption>
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="table-note">
+            “Players used” counts golfers with at least one numeric round. Low,
+            average, and high caps include every listed golfer with a cap.
+          </p>
+        </div>
+      </section>
+
+      <section id="movement" class="section section-tint">
+        <div class="page-shell">
+          <div class="section-heading split-heading">
+            <div>
+              <p class="eyebrow">Weekly movement</p>
+              <h2>How far from the front?</h2>
+              <p>
+                Each line tracks cumulative shots back from that week’s leader.
+                Zero is the top spot.
+              </p>
+            </div>
+            <div class="chart-controls">
+              <label class="field" for="movement-team">
+                <span>Focus a team</span>
+                <select id="movement-team"></select>
+              </label>
+              <label class="toggle-control">
+                <input id="movement-all" type="checkbox" checked />
+                <span aria-hidden="true"></span>
+                Show field
+              </label>
+            </div>
+          </div>
+
+          <div class="chart-card movement-card">
+            <div id="movement-chart" class="chart movement-chart" aria-live="polite"></div>
+            <div id="movement-legend" class="movement-legend" aria-label="Team chart legend"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="players" class="section page-shell">
+        <div class="section-heading">
+          <p class="eyebrow">Player lab</p>
+          <h2>Pick a team. Find a player.</h2>
+          <p>
+            Compare gross and calculated net scoring, then follow every available
+            round through the season.
+          </p>
+        </div>
+
+        <div class="player-picker" aria-label="Player selection">
+          <label class="field" for="player-team">
+            <span>Team</span>
+            <select id="player-team"></select>
+          </label>
+          <span class="picker-arrow" aria-hidden="true">→</span>
+          <label class="field" for="player-select">
+            <span>Player</span>
+            <select id="player-select"></select>
+          </label>
+        </div>
+
+        <div class="player-overview">
+          <article class="player-profile">
+            <div>
+              <span class="player-kicker" id="player-team-name">—</span>
+              <h3 id="player-name">Choose a player</h3>
+            </div>
+            <div class="cap-badge">
+              <span>Current cap</span>
+              <strong id="player-cap">—</strong>
+            </div>
+            <div class="player-stat-grid">
+              <div><span>Rounds</span><strong id="player-rounds">—</strong></div>
+              <div><span>Avg gross</span><strong id="player-avg-gross">—</strong></div>
+              <div><span>Avg net</span><strong id="player-avg-net">—</strong></div>
+              <div><span>Best net</span><strong id="player-best-net">—</strong></div>
+            </div>
+            <p>
+              Net scores use the current cap for every week, including prior rounds.
+            </p>
+          </article>
+
+          <article class="chart-card player-chart-card">
+            <div class="mini-card-heading">
+              <div>
+                <span class="mini-label">Scoring distribution</span>
+                <h3>Where the rounds land</h3>
+              </div>
+              <div class="key" aria-label="Chart key">
+                <span><i class="gross-key"></i>Gross</span>
+                <span><i class="net-key"></i>Net</span>
+              </div>
+            </div>
+            <div id="distribution-chart" class="chart distribution-chart"></div>
+          </article>
+        </div>
+
+        <article class="chart-card rounds-card">
+          <div class="mini-card-heading">
+            <div>
+              <span class="mini-label">Scores by round</span>
+              <h3>Week-to-week form</h3>
+            </div>
+            <span id="rounds-summary" class="rounds-summary">—</span>
+          </div>
+          <div id="rounds-chart" class="chart rounds-chart"></div>
+          <div class="table-scroll compact-table-scroll">
+            <table id="rounds-table" class="rounds-table">
+              <caption class="sr-only">Selected player’s scores by round</caption>
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section id="sandbag" class="section section-dark">
+        <div class="page-shell">
+          <div class="section-heading split-heading dark-heading">
+            <div>
+              <p class="eyebrow eyebrow-light">Handicap watch</p>
+              <h2>The Sandbag Rankings.</h2>
+              <p>
+                Compare calculated net scores with nine-hole par 36. Repeatedly
+                finishing under net par suggests a cap may be too high; repeatedly
+                finishing over par suggests it may be too low.
+              </p>
+            </div>
+            <div class="sandbag-controls">
+              <div class="segmented" role="group" aria-label="Rank players or teams">
+                <button class="active" type="button" data-ranking-mode="players" aria-pressed="true">
+                  Players
+                </button>
+                <button type="button" data-ranking-mode="teams" aria-pressed="false">
+                  Teams
+                </button>
+              </div>
+              <label class="field field-dark" for="ranking-rounds">
+                <span>Minimum rounds</span>
+                <select id="ranking-rounds">
+                  <option value="1">1+</option>
+                  <option value="2">2+</option>
+                  <option value="3" selected>3+</option>
+                  <option value="5">5+</option>
+                </select>
+              </label>
+              <label class="field field-dark" for="ranking-sort">
+                <span>Rank by</span>
+                <select id="ranking-sort">
+                  <option value="under">Most under net par</option>
+                  <option value="frequency">Under-par frequency</option>
+                  <option value="over">Most over net par</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="ranking-layout">
+            <article class="ranking-chart-wrap">
+              <div class="ranking-key" aria-label="Ranking chart key">
+                <span><i class="under-par-key"></i>Cap may be high</span>
+                <span><i class="even-key"></i>Net par</span>
+                <span><i class="over-par-key"></i>Cap may be low</span>
+              </div>
+              <div id="ranking-chart" class="chart ranking-chart"></div>
+            </article>
+            <article class="ranking-list-card">
+              <div class="mini-card-heading">
+                <div>
+                  <span class="mini-label">Top 10</span>
+                  <h3 id="ranking-list-title">Most under net par</h3>
+                </div>
+              </div>
+              <ol id="ranking-list" class="ranking-list"></ol>
+            </article>
+          </div>
+
+          <p class="method-note">
+            Net score equals gross minus the player’s current cap. Exactly 36 is
+            even par; under-par frequency counts rounds below 36. Missing scores
+            and caps are excluded, and team values combine recorded player rounds.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="page-shell">
+        <div class="brand footer-brand">
+          <span class="brand-mark" aria-hidden="true"><span>CL</span></span>
+          <span><strong>City League Stats</strong><small>Golf, unpacked.</small></span>
+        </div>
+        <p>Built from commissioner scorecards. No logins, no server, just the numbers.</p>
+      </div>
+    </footer>
+
+    <div id="chart-tooltip" class="chart-tooltip" role="tooltip" hidden></div>
+
+    <noscript>
+      <div class="noscript">JavaScript is required to explore these scorecards.</div>
+    </noscript>
+  </body>
+</html>
