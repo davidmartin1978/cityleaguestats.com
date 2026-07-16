@@ -213,8 +213,10 @@
         averageCap: meanOrNull(caps),
         highCap: maxOrNull(caps),
         lowGross: minOrNull(grossScores),
+        averageGross: meanOrNull(grossScores),
         highGross: maxOrNull(grossScores),
         lowNet: minOrNull(netScores),
+        averageNet: meanOrNull(netScores),
         highNet: maxOrNull(netScores),
       };
     });
@@ -264,8 +266,10 @@
       { key: "averageCap", label: "Avg cap", format: formatOne },
       { key: "highCap", label: "High cap", format: formatOne },
       { key: "lowGross", label: "Low gross", format: formatWhole },
+      { key: "averageGross", label: "Avg gross", format: formatOne },
       { key: "highGross", label: "High gross", format: formatWhole },
       { key: "lowNet", label: "Low net", format: formatWhole },
+      { key: "averageNet", label: "Avg net", format: formatOne },
       { key: "highNet", label: "High net", format: formatWhole },
     ];
   }

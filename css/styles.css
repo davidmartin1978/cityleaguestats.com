@@ -375,7 +375,7 @@ h3 {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(420px, 0.85fr);
-  min-height: 570px;
+  min-height: 370px;
   overflow: hidden;
   color: white;
   background: var(--forest);
@@ -383,7 +383,7 @@ h3 {
 
 .hero::before {
   position: absolute;
-  top: -230px;
+  top: -300px;
   left: -100px;
   width: 620px;
   height: 620px;
@@ -412,7 +412,7 @@ h3 {
   width: min(760px, calc(100% - 64px));
   align-self: center;
   justify-self: end;
-  padding: 80px 80px 80px 0;
+  padding: 46px 70px 46px 0;
 }
 
 .eyebrow {
@@ -430,17 +430,17 @@ h3 {
 
 .hero h1 {
   max-width: 680px;
-  margin-bottom: 26px;
-  font-size: clamp(52px, 5.6vw, 90px);
+  margin-bottom: 18px;
+  font-size: clamp(40px, 4.4vw, 66px);
   font-weight: 780;
   letter-spacing: -0.07em;
 }
 
 .hero-intro {
   max-width: 560px;
-  margin-bottom: 32px;
+  margin-bottom: 22px;
   color: rgba(255, 255, 255, 0.68);
-  font-size: 18px;
+  font-size: 15px;
 }
 
 .hero-link {
@@ -474,7 +474,7 @@ h3 {
   display: grid;
   grid-template-rows: auto 1fr auto auto;
   min-width: 0;
-  padding: 58px 60px 0;
+  padding: 32px 50px 0;
   background: var(--lime);
   color: var(--forest-3);
 }
@@ -483,7 +483,7 @@ h3 {
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  padding-bottom: 20px;
+  padding-bottom: 13px;
   border-bottom: 1px solid rgba(14, 43, 35, 0.2);
   font-size: 10px;
   font-weight: 900;
@@ -496,12 +496,12 @@ h3 {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 22px;
-  padding: 36px 0;
+  padding: 22px 0;
 }
 
 .leader-place {
   font-family: var(--mono);
-  font-size: clamp(62px, 6.2vw, 96px);
+  font-size: clamp(52px, 5vw, 74px);
   font-weight: 800;
   letter-spacing: -0.1em;
   line-height: 1;
@@ -519,7 +519,7 @@ h3 {
 .hero-leader strong {
   display: block;
   max-width: 260px;
-  font-size: clamp(22px, 2.4vw, 36px);
+  font-size: clamp(20px, 2vw, 30px);
   letter-spacing: -0.045em;
   line-height: 1.05;
 }
@@ -546,7 +546,7 @@ h3 {
 .hero-metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  padding: 24px 0;
+  padding: 17px 0;
   border-top: 1px solid rgba(14, 43, 35, 0.2);
 }
 
@@ -562,7 +562,7 @@ h3 {
 
 .hero-metrics strong {
   font-family: var(--mono);
-  font-size: 25px;
+  font-size: 21px;
   line-height: 1;
 }
 
@@ -575,8 +575,8 @@ h3 {
 }
 
 .scorecard-stripes {
-  height: 44px;
-  margin: 0 -60px;
+  height: 28px;
+  margin: 0 -50px;
   background: repeating-linear-gradient(
     -45deg,
     rgba(22, 61, 50, 0.08),
@@ -1678,12 +1678,12 @@ tbody td {
   .hero-copy {
     width: var(--page);
     justify-self: center;
-    padding: 78px 0 68px;
+    padding: 48px 0 42px;
   }
 
   .hero-scorecard {
-    min-height: 360px;
-    padding-top: 36px;
+    min-height: 285px;
+    padding-top: 24px;
   }
 
   .section {
@@ -1759,11 +1759,11 @@ tbody td {
   }
 
   .hero-copy {
-    padding-top: 64px;
+    padding: 40px 0 36px;
   }
 
   .hero h1 {
-    font-size: clamp(47px, 15vw, 68px);
+    font-size: clamp(38px, 12vw, 52px);
   }
 
   .hero-intro {
@@ -1771,7 +1771,7 @@ tbody td {
   }
 
   .hero-scorecard {
-    min-height: 350px;
+    min-height: 275px;
     padding-inline: 24px;
   }
 
