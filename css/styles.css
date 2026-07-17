@@ -1045,6 +1045,35 @@ tbody td {
   font-size: 12px;
 }
 
+.cap-history-card {
+  margin-bottom: 24px;
+  padding: 27px 28px 20px;
+}
+
+.cap-history-chart {
+  min-height: 260px;
+}
+
+.cap-history-line {
+  fill: none;
+  stroke: var(--forest-2);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.cap-history-point {
+  fill: var(--lime);
+  stroke: var(--forest);
+  stroke-width: 3;
+}
+
+.cap-history-note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
 .rounds-card {
   padding: 27px 28px 0;
 }
@@ -1586,8 +1615,15 @@ tbody td {
   }
 
   .player-chart-card,
+  .cap-history-card,
   .rounds-card {
     padding-inline: 18px;
+  }
+
+  .cap-history-card .mini-card-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .compact-table-scroll {

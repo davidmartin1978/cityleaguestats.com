@@ -82,7 +82,8 @@
             <h2>Standings</h2>
             <p>
               Team scores are net. Player round scores are gross;
-              net values below use each player’s current listed handicap.
+              net values below use each player’s handicap reported for that week.
+              When a weekly snapshot is missing, the last reported cap carries forward.
             </p>
           </div>
           <div class="section-meta">
@@ -187,7 +188,8 @@
               <div><span>Best net</span><strong id="player-best-net">—</strong></div>
             </div>
             <p>
-              Net scores use the current cap for every week, including prior rounds.
+              Net scores use the cap reported for each week. Missing snapshots use
+              the most recent earlier cap.
             </p>
           </article>
 
@@ -205,6 +207,21 @@
             <div id="distribution-chart" class="chart distribution-chart"></div>
           </article>
         </div>
+
+        <article class="chart-card cap-history-card">
+          <div class="mini-card-heading">
+            <div>
+              <span class="mini-label">Handicap history</span>
+              <h3>How the cap moved</h3>
+            </div>
+            <span id="cap-history-summary" class="rounds-summary">—</span>
+          </div>
+          <div id="cap-history-chart" class="chart cap-history-chart"></div>
+          <p class="cap-history-note">
+            Points are commissioner-reported weekly caps. The line carries the last
+            reported cap through weeks without a usable snapshot.
+          </p>
+        </article>
 
         <article class="chart-card rounds-card">
           <div class="mini-card-heading">
@@ -287,9 +304,10 @@
           </div>
 
           <p class="method-note">
-            Net score equals gross minus the player’s current cap. Exactly 36 is
-            even par; under-par frequency counts rounds below 36. Missing scores
-            and caps are excluded, and team values combine recorded player rounds.
+            Net score equals gross minus the cap reported for that week; the last
+            earlier cap carries through a missing snapshot. Exactly 36 is even par;
+            missing scores or unavailable caps are excluded, and team values combine
+            recorded player rounds.
           </p>
         </div>
       </section>

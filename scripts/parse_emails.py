@@ -35,6 +35,7 @@ FORMAT_NAMES = {
 class ParsedEmail:
     season: dict[str, Any]
     source_date: datetime
+    result_week: int
 
 
 def slugify(value: str) -> str:
@@ -75,6 +76,14 @@ def extract_course(subject: str) -> str:
     return "City League"
 
 
+def extract_result_week(subject: str, path: Path) -> int:
+    for value in (subject, path.stem.replace("_", " ")):
+        match = re.search(r"\bweek\s*[- ]?\s*(\d{1,2})\b", value, re.IGNORECASE)
+        if match:
+            return int(match.group(1))
+    raise ValueError("Could not determine the result week from the subject or filename")
+
+
 def parse_round(raw: str, week: int) -> dict[str, Any]:
     gross = as_number(raw)
     markers = re.findall(r"[a-z]+", raw.casefold())
@@ -106,6 +115,7 @@ def parse_email(path: Path) -> ParsedEmail:
     if body is None:
         raise ValueError("Email has no text/plain body")
 
+    result_week = extract_result_week(subject, path)
     lines = body.get_content().splitlines()
     header_index, header = locate_table(lines)
     width = len(header)
@@ -216,7 +226,7 @@ def parse_email(path: Path) -> ParsedEmail:
         "year": year,
         "league": course,
         "asOf": source_date.date().isoformat(),
-        "source": {"file": path.name, "subject": subject},
+        "source": {"file": path.name, "subject": subject, "resultWeek": result_week},
         "rounds": rounds,
         "teams": teams,
         "validation": {
@@ -227,15 +237,104 @@ def parse_email(path: Path) -> ParsedEmail:
             "warnings": warnings,
         },
     }
-    return ParsedEmail(season=season, source_date=source_date)
+    return ParsedEmail(season=season, source_date=source_date, result_week=result_week)
 
 
 def discover_emails(folder: Path) -> Iterable[Path]:
     return sorted(path for path in folder.glob("*.eml") if path.is_file())
 
 
+def names_are_aliases(left: str, right: str) -> bool:
+    left_parts = re.findall(r"[a-z0-9]+", left.casefold())
+    right_parts = re.findall(r"[a-z0-9]+", right.casefold())
+    if not left_parts or not right_parts:
+        return False
+    shorter, longer = sorted((left_parts, right_parts), key=len)
+    return len(shorter) == 1 and longer[0] == shorter[0]
+
+
+def match_historical_player(
+    current_team: dict[str, Any], historical_player: dict[str, Any]
+) -> dict[str, Any] | None:
+    exact = next(
+        (
+            player
+            for player in current_team["players"]
+            if player["id"] == historical_player["id"]
+        ),
+        None,
+    )
+    if exact:
+        return exact
+
+    alias_candidates = [
+        player
+        for player in current_team["players"]
+        if names_are_aliases(player["name"], historical_player["name"])
+        and player["handicap"] == historical_player["handicap"]
+    ]
+    return alias_candidates[0] if len(alias_candidates) == 1 else None
+
+
+def attach_handicap_histories(
+    season: dict[str, Any], snapshots: list[ParsedEmail]
+) -> None:
+    current_teams = {team["id"]: team for team in season["teams"]}
+    histories: dict[str, dict[int, int | None]] = {
+        player["id"]: {}
+        for team in season["teams"]
+        for player in team["players"]
+    }
+    sources_by_week: dict[int, dict[str, Any]] = {}
+    warnings: list[str] = []
+
+    for snapshot in sorted(snapshots, key=lambda item: (item.result_week, item.source_date)):
+        sources_by_week[snapshot.result_week] = {
+            "week": snapshot.result_week,
+            "asOf": snapshot.source_date.date().isoformat(),
+            "file": snapshot.season["source"]["file"],
+        }
+        for historical_team in snapshot.season["teams"]:
+            current_team = current_teams.get(historical_team["id"])
+            if current_team is None:
+                warnings.append(
+                    f"Week {snapshot.result_week}: no current team match for "
+                    f"{historical_team['name']}"
+                )
+                continue
+            for historical_player in historical_team["players"]:
+                current_player = match_historical_player(current_team, historical_player)
+                if current_player is None:
+                    warnings.append(
+                        f"Week {snapshot.result_week}: no current player match for "
+                        f"{historical_player['name']} ({historical_team['name']})"
+                    )
+                    continue
+                histories[current_player["id"]][snapshot.result_week] = historical_player[
+                    "handicap"
+                ]
+
+    history_count = 0
+    players_with_history = 0
+    for team in season["teams"]:
+        for player in team["players"]:
+            player["handicapHistory"] = [
+                {"week": week, "handicap": handicap}
+                for week, handicap in sorted(histories[player["id"]].items())
+            ]
+            history_count += len(player["handicapHistory"])
+            if player["handicapHistory"]:
+                players_with_history += 1
+
+    season["handicapWeeks"] = [sources_by_week[week] for week in sorted(sources_by_week)]
+    season["validation"]["handicapSnapshots"] = history_count
+    season["validation"]["playersWithHandicapHistory"] = players_with_history
+    season["validation"]["handicapHistoryWarnings"] = warnings
+
+
 def build_store(email_folder: Path) -> dict[str, Any]:
     latest: dict[str, ParsedEmail] = {}
+    snapshots: dict[str, list[ParsedEmail]] = {}
     failures: list[str] = []
 
     for path in discover_emails(email_folder):
@@ -246,6 +345,7 @@ def build_store(email_folder: Path) -> dict[str, Any]:
             continue
 
         season_id = parsed.season["id"]
+        snapshots.setdefault(season_id, []).append(parsed)
         current = latest.get(season_id)
         parsed_key = (len(parsed.season["rounds"]), parsed.source_date)
         current_key = (
@@ -260,10 +360,13 @@ def build_store(email_folder: Path) -> dict[str, Any]:
         details = "; ".join(failures) or "No .eml files found"
         raise ValueError(f"No usable season tables found. {details}")
 
-    seasons = [item.season for item in latest.values()]
+    seasons = []
+    for season_id, item in latest.items():
+        attach_handicap_histories(item.season, snapshots[season_id])
+        seasons.append(item.season)
     seasons.sort(key=lambda season: (season["year"], season["league"]), reverse=True)
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "generatedFrom": "emails/*.eml",
         "seasons": seasons,
         "importWarnings": failures,
@@ -292,9 +395,13 @@ def main() -> int:
         print(
             f"{season['name']}: {validation['teamCount']} teams, "
             f"{validation['playersUsed']} players used, "
-            f"{validation['playerRounds']} player rounds"
+            f"{validation['playerRounds']} player rounds, "
+            f"{validation['handicapSnapshots']} cap snapshots from "
+            f"{len(season['handicapWeeks'])} result weeks"
         )
         for warning in validation["warnings"]:
+            print(f"  warning: {warning}")
+        for warning in validation["handicapHistoryWarnings"]:
             print(f"  warning: {warning}")
     for warning in store["importWarnings"]:
         print(f"Skipped {warning}")

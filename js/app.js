@@ -85,6 +85,8 @@
       "player-avg-net",
       "player-best-net",
       "distribution-chart",
+      "cap-history-chart",
+      "cap-history-summary",
       "rounds-chart",
       "rounds-summary",
       "rounds-table",
@@ -187,11 +189,9 @@
         player.rounds.map((round) => round.gross).filter(isNumber)
       );
       const netScores = team.players.flatMap((player) =>
-        player.handicap == null
-          ? []
-          : player.rounds
-              .map((round) => (isNumber(round.gross) ? round.gross - player.handicap : null))
-              .filter(isNumber)
+        playerRecords(player)
+          .map((record) => record.net)
+          .filter(isNumber)
       );
 
       return {
@@ -577,6 +577,7 @@
       : "No numeric scores yet";
 
     renderDistribution(records);
+    renderCapHistory(player);
     renderRoundsChart(records);
     renderRoundsTable(player);
   }
@@ -675,6 +676,108 @@
       .on("pointerleave", hideTooltip);
   }
 
+  function renderCapHistory(player) {
+    const container = elements.capHistoryChart;
+    const history = playerHandicapHistory(player);
+    container.replaceChildren();
+
+    if (!history.length) {
+      elements.capHistorySummary.textContent = "No reported caps";
+      renderEmptyChart(container, "No weekly handicap history is available for this player.");
+      return;
+    }
+
+    const first = history[0].handicap;
+    const last = history[history.length - 1].handicap;
+    const change = last - first;
+    const movement = change === 0 ? "no change" : `${change > 0 ? "↑" : "↓"}${Math.abs(change)}`;
+    elements.capHistorySummary.textContent = `${history.length} reported week${history.length === 1 ? "" : "s"} · ${first} → ${last} · ${movement}`;
+
+    const width = Math.max(560, container.clientWidth || 900);
+    const height = 260;
+    const margin = { top: 18, right: 24, bottom: 42, left: 48 };
+    const plotWidth = width - margin.left - margin.right;
+    const plotHeight = height - margin.top - margin.bottom;
+    const x = d3
+      .scalePoint()
+      .domain(state.season.rounds.map((round) => round.week))
+      .range([margin.left, margin.left + plotWidth])
+      .padding(0.2);
+    let low = d3.min(history, (record) => record.handicap);
+    let high = d3.max(history, (record) => record.handicap);
+    if (low === high) {
+      low -= 2;
+      high += 2;
+    } else {
+      low -= 1;
+      high += 1;
+    }
+    const y = d3.scaleLinear().domain([low, high]).nice().range([margin.top + plotHeight, margin.top]);
+    const svg = d3
+      .select(container)
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .attr("role", "img")
+      .attr("aria-label", `${player.name} reported handicap by week`);
+
+    svg
+      .append("g")
+      .attr("class", "grid")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y).ticks(5).tickSize(-plotWidth).tickFormat(""));
+
+    const line = d3
+      .line()
+      .x((record) => x(record.week))
+      .y((record) => y(record.handicap))
+      .curve(d3.curveStepAfter);
+
+    svg
+      .append("path")
+      .datum(history)
+      .attr("class", "cap-history-line")
+      .attr("d", line);
+
+    svg
+      .append("g")
+      .selectAll("circle")
+      .data(history)
+      .join("circle")
+      .attr("class", "cap-history-point")
+      .attr("cx", (record) => x(record.week))
+      .attr("cy", (record) => y(record.handicap))
+      .attr("r", 5)
+      .on("pointerenter", (event, record) => {
+        const source = handicapSourceForWeek(record.week);
+        showTooltip(
+          event,
+          `<strong>Week ${record.week} reported cap</strong>${source ? formatDate(source.asOf) : "Commissioner snapshot"}<div class="tooltip-values"><span>Handicap</span><span>${formatWhole(record.handicap)}</span></div>`
+        );
+      })
+      .on("pointermove", moveTooltip)
+      .on("pointerleave", hideTooltip);
+
+    svg
+      .append("g")
+      .attr("class", "axis")
+      .attr("transform", `translate(0,${margin.top + plotHeight})`)
+      .call(d3.axisBottom(x).tickSize(0).tickPadding(12).tickFormat((week) => `W${week}`));
+    const yAxis = svg
+      .append("g")
+      .attr("class", "axis")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format("d")));
+    yAxis.select(".domain").remove();
+    svg
+      .append("text")
+      .attr("class", "chart-axis-label")
+      .attr("x", margin.left)
+      .attr("y", 10)
+      .text("Handicap");
+  }
+
   function renderRoundsChart(records) {
     const container = elements.roundsChart;
     container.replaceChildren();
@@ -761,7 +864,7 @@
         .on("pointerenter", (event, record) => {
           showTooltip(
             event,
-            `<strong>Week ${record.week} · ${escapeHtml(record.format)}</strong><div class="tooltip-values"><span>Gross</span><span>${formatWhole(record.gross)}</span><span>Current cap</span><span>${formatWhole(record.handicap)}</span><span>Net</span><span>${formatWhole(record.net)}</span><span>To par</span><span>${formatToPar(record.toPar)}</span></div>`
+            `<strong>Week ${record.week} · ${escapeHtml(record.format)}</strong><div class="tooltip-values"><span>Gross</span><span>${formatWhole(record.gross)}</span><span>Applied cap</span><span>${formatWhole(record.handicap)}</span><span>Cap source</span><span>${escapeHtml(capSourceLabel(record))}</span><span>Net</span><span>${formatWhole(record.net)}</span><span>To par</span><span>${formatToPar(record.toPar)}</span></div>`
           );
         })
         .on("pointermove", moveTooltip)
@@ -791,7 +894,7 @@
 
   function renderRoundsTable(player) {
     const header = document.createElement("tr");
-    ["Round", "Format", "Gross", "Current cap", "Net", "To par"].forEach((label) => {
+    ["Round", "Format", "Gross", "Applied cap", "Net", "To par"].forEach((label) => {
       const th = document.createElement("th");
       th.scope = "col";
       th.textContent = label;
@@ -807,7 +910,7 @@
         `Week ${record.week}`,
         record.format,
         record.gross == null ? record.raw.toUpperCase() : record.gross,
-        player.handicap,
+        formatAppliedCap(record),
         record.net,
         record.toPar,
       ];
@@ -1180,10 +1283,65 @@
     document.getElementById("players").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function playerHandicapHistory(player) {
+    const history = Array.isArray(player.handicapHistory)
+      ? player.handicapHistory
+          .filter((record) => isNumber(record.week) && isNumber(record.handicap))
+          .sort((a, b) => a.week - b.week)
+      : [];
+    if (history.length || !isNumber(player.handicap)) return history;
+    return [{ week: state.season.rounds.at(-1)?.week ?? 1, handicap: player.handicap }];
+  }
+
+  function handicapSourceForWeek(week) {
+    return state.season.handicapWeeks?.find((source) => source.week === week) || null;
+  }
+
+  function handicapForWeek(player, week) {
+    if (!Array.isArray(player.handicapHistory)) {
+      return isNumber(player.handicap)
+        ? { handicap: player.handicap, reportedWeek: null, carried: false }
+        : null;
+    }
+
+    const exact = player.handicapHistory.find((record) => record.week === week);
+    if (exact) {
+      return {
+        handicap: exact.handicap,
+        reportedWeek: exact.week,
+        carried: false,
+      };
+    }
+
+    const previous = [...player.handicapHistory]
+      .reverse()
+      .find((record) => record.week < week && isNumber(record.handicap));
+    return previous
+      ? { handicap: previous.handicap, reportedWeek: previous.week, carried: true }
+      : null;
+  }
+
+  function capSourceLabel(record) {
+    if (!isNumber(record.handicap)) return "Unavailable";
+    if (record.handicapWeek == null) return "Current cap fallback";
+    return record.handicapCarried
+      ? `Week ${record.handicapWeek} carried`
+      : `Week ${record.handicapWeek}`;
+  }
+
+  function formatAppliedCap(record) {
+    if (!isNumber(record.handicap)) return "—";
+    return record.handicapCarried
+      ? `${record.handicap} (W${record.handicapWeek})`
+      : String(record.handicap);
+  }
+
   function playerRecords(player) {
     return state.season.rounds.map((round, index) => {
       const score = player.rounds[index] || {};
-      const net = isNumber(score.gross) && isNumber(player.handicap) ? score.gross - player.handicap : null;
+      const appliedCap = handicapForWeek(player, round.week);
+      const handicap = appliedCap?.handicap;
+      const net = isNumber(score.gross) && isNumber(handicap) ? score.gross - handicap : null;
       return {
         week: round.week,
         format: round.format,
@@ -1191,7 +1349,9 @@
         gross: score.gross,
         raw: score.raw,
         markers: score.markers || [],
-        handicap: player.handicap,
+        handicap,
+        handicapWeek: appliedCap?.reportedWeek ?? null,
+        handicapCarried: appliedCap?.carried ?? false,
         net,
         toPar: isNumber(net) ? net - PAR : null,
       };
@@ -1354,9 +1514,13 @@
       return;
     }
     const observer = new ResizeObserver(scheduleChartRender);
-    [elements.movementChart, elements.distributionChart, elements.roundsChart, elements.rankingChart].forEach(
-      (element) => observer.observe(element)
-    );
+    [
+      elements.movementChart,
+      elements.distributionChart,
+      elements.capHistoryChart,
+      elements.roundsChart,
+      elements.rankingChart,
+    ].forEach((element) => observer.observe(element));
   }
 
   function scheduleChartRender() {

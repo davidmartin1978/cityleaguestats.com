@@ -23,7 +23,7 @@ Then open `http://localhost:8000`. The deployed site needs only the repository's
 
 3. Review the validation summary and commit the updated `data/seasons.json`.
 
-For each season, the importer keeps the newest email with the largest week count because the commissioner table is season-to-date. Team scores are treated as net. Player scores are treated as gross, and the website subtracts each player's current listed handicap to calculate net scores for all weeks.
+For each season, the importer keeps the newest email with the largest week count as the season-to-date standings and merges the handicap listed in every available weekly email into each player's `handicapHistory`. The season's `handicapWeeks` array records the source email for each snapshot. Team scores are treated as net. Player scores are treated as gross, and the website subtracts the handicap reported for that week. When a weekly snapshot is missing, the most recent earlier handicap carries forward; a player with no earlier cap has no calculated net for that round.
 
 ## Files
 
