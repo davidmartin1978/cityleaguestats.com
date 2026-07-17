@@ -68,13 +68,6 @@
       "global-search",
       "search-results",
       "load-error",
-      "hero-season",
-      "hero-as-of",
-      "hero-leader",
-      "hero-leader-total",
-      "hero-teams",
-      "hero-weeks",
-      "hero-players",
       "standings-updated",
       "standings-table",
       "team-table-search",
@@ -179,7 +172,7 @@
 
     populateTeamControls();
     populatePlayerSelect();
-    renderHero();
+    renderSeasonMeta();
     renderStandings();
     renderMovement();
     renderPlayer();
@@ -222,15 +215,7 @@
     });
   }
 
-  function renderHero() {
-    const leader = [...state.season.teams].sort(comparePlace)[0];
-    elements.heroSeason.textContent = state.season.name;
-    elements.heroAsOf.textContent = `Through week ${state.season.rounds.length}`;
-    elements.heroLeader.textContent = leader.name;
-    elements.heroLeaderTotal.textContent = leader.total;
-    elements.heroTeams.textContent = state.season.teams.length;
-    elements.heroWeeks.textContent = state.season.rounds.length;
-    elements.heroPlayers.textContent = state.season.validation?.playersUsed ?? countPlayersUsed();
+  function renderSeasonMeta() {
     elements.standingsUpdated.textContent = `Updated ${formatDate(state.season.asOf)}`;
   }
 
@@ -1259,13 +1244,6 @@
     if (!Number.isFinite(numeric)) return value;
     const tied = state.season.teams.filter((team) => Number.parseInt(team.place, 10) === numeric).length > 1;
     return `${tied ? "T" : ""}${numeric}`;
-  }
-
-  function countPlayersUsed() {
-    return state.season.teams.reduce(
-      (total, team) => total + team.players.filter((player) => numericPlayerRounds(player).length).length,
-      0
-    );
   }
 
   function formatDate(value) {

@@ -8,7 +8,7 @@
       content="Explore City League golf standings, weekly movement, player scoring, and handicap rankings."
     />
     <meta name="theme-color" content="#163d32" />
-    <title>City League Stats</title>
+    <title>City League Golf Stats</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="css/styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
@@ -19,7 +19,13 @@
 
     <header class="site-header">
       <a class="brand" href="#top" aria-label="City League Stats home">
-        <span class="brand-mark" aria-hidden="true"><span>CL</span></span>
+        <img
+          class="brand-logo"
+          src="pinky_logo.png"
+          alt=""
+          width="1024"
+          height="1024"
+        />
         <span>
           <strong>City League</strong>
           <small>Golf stats</small>
@@ -54,39 +60,15 @@
     </header>
 
     <main id="main-content">
-      <section class="hero" id="top">
-        <div class="hero-copy">
-          <p class="eyebrow eyebrow-light">Jefferson City League</p>
-          <h1>I sure hope Jack<br />doesn’t find this site.</h1>
-          <p class="hero-intro">
-            Follow the table, see who is moving, and drill from team totals all
-            the way down to a player’s latest nine.
-          </p>
-          <a class="hero-link" href="#standings">
-            Explore the standings <span aria-hidden="true">↓</span>
-          </a>
-        </div>
-
-        <div class="hero-scorecard" aria-label="Season at a glance">
-          <div class="scorecard-topline">
-            <span id="hero-season">Current season</span>
-            <span id="hero-as-of">Loading…</span>
-          </div>
-          <div class="hero-leader">
-            <span class="leader-place">01</span>
-            <div>
-              <span class="stat-label">Current leader</span>
-              <strong id="hero-leader">—</strong>
-            </div>
-            <span class="leader-total" id="hero-leader-total">—</span>
-          </div>
-          <div class="hero-metrics">
-            <div><strong id="hero-teams">—</strong><span>Teams</span></div>
-            <div><strong id="hero-weeks">—</strong><span>Weeks</span></div>
-            <div><strong id="hero-players">—</strong><span>Players used</span></div>
-          </div>
-          <div class="scorecard-stripes" aria-hidden="true"></div>
-        </div>
+      <section class="hero" id="top" aria-label="Jefferson City League golfers">
+        <img
+          class="hero-image"
+          src="hero_image.png"
+          alt="A colorful group portrait of Jefferson City League golfers on the course"
+          width="2172"
+          height="724"
+          fetchpriority="high"
+        />
       </section>
 
       <div id="load-error" class="load-error page-shell" role="alert" hidden>
@@ -97,10 +79,9 @@
       <section id="standings" class="section page-shell">
         <div class="section-heading split-heading">
           <div>
-            <p class="eyebrow">Season table</p>
-            <h2>Standings, beyond the total.</h2>
+            <h2>Standings</h2>
             <p>
-              Commissioner team scores are net. Player round scores are gross;
+              Team scores are net. Player round scores are gross;
               net values below use each player’s current listed handicap.
             </p>
           </div>
@@ -142,8 +123,7 @@
         <div class="page-shell">
           <div class="section-heading split-heading">
             <div>
-              <p class="eyebrow">Weekly movement</p>
-              <h2>How far from the front?</h2>
+              <h2>Standings Movement by Week</h2>
               <p>
                 Each line tracks cumulative shots back from that week’s leader.
                 Zero is the top spot.
@@ -171,8 +151,7 @@
 
       <section id="players" class="section page-shell">
         <div class="section-heading">
-          <p class="eyebrow">Player lab</p>
-          <h2>Pick a team. Find a player.</h2>
+          <h2>Player Stats</h2>
           <p>
             Compare gross and calculated net scoring, then follow every available
             round through the season.
@@ -319,7 +298,14 @@
     <footer class="site-footer">
       <div class="page-shell">
         <div class="brand footer-brand">
-          <span class="brand-mark" aria-hidden="true"><span>CL</span></span>
+          <img
+            class="brand-logo"
+            src="pinky_logo.png"
+            alt=""
+            width="1024"
+            height="1024"
+            loading="lazy"
+          />
           <span><strong>City League Stats</strong><small>Golf, unpacked.</small></span>
         </div>
         <p>(c) 2026 A Diamond Dick Dave Production.</p>
