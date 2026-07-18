@@ -18,7 +18,7 @@
     <a class="skip-link" href="#main-content">Skip to stats</a>
 
     <header class="site-header">
-      <a class="brand" href="#top" aria-label="City League Stats home">
+      <a class="brand" href="#main-content" aria-label="City League Stats home">
         <img
           class="brand-logo"
           src="pinky_logo.png"
@@ -34,7 +34,7 @@
 
       <nav class="primary-nav" aria-label="Primary navigation">
         <a href="#standings">Standings</a>
-        <a href="#players">Players</a>
+        <a href="#player-standings">Players</a>
         <a href="#sandbag">Rankings</a>
       </nav>
 
@@ -60,17 +60,6 @@
     </header>
 
     <main id="main-content">
-      <section class="hero" id="top" aria-label="Jefferson City League golfers">
-        <img
-          class="hero-image"
-          src="hero_image.png"
-          alt="A colorful group portrait of Jefferson City League golfers on the course"
-          width="2172"
-          height="724"
-          fetchpriority="high"
-        />
-      </section>
-
       <div id="load-error" class="load-error page-shell" role="alert" hidden>
         <strong>Couldn’t load the scorecard.</strong>
         <span>Serve this folder with a small local web server and refresh.</span>
@@ -147,6 +136,47 @@
             <div id="movement-chart" class="chart movement-chart" aria-live="polite"></div>
             <div id="movement-legend" class="movement-legend" aria-label="Team chart legend"></div>
           </div>
+        </div>
+      </section>
+
+      <section id="player-standings" class="section page-shell">
+        <div class="section-heading">
+          <h2>Player Details</h2>
+          <p>
+            Compare scoring and handicap ranges for every golfer with a recorded round.
+          </p>
+        </div>
+
+        <div class="table-card">
+          <div class="card-toolbar">
+            <div>
+              <h3>Player detail</h3>
+              <p>Click a heading to sort or a player to open their full stats.</p>
+            </div>
+            <label class="field search-field" for="player-table-search">
+              <span class="sr-only">Filter players or teams</span>
+              <span class="search-icon" aria-hidden="true"></span>
+              <input
+                id="player-table-search"
+                type="search"
+                placeholder="Filter players or teams"
+              />
+            </label>
+          </div>
+          <div class="table-scroll player-table-scroll">
+            <table id="player-table">
+              <caption class="sr-only">
+                Player scoring and handicap ranges for the selected season
+              </caption>
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="table-note">
+            Only golfers with at least one recorded round are shown. Net scores use
+            the cap applied for each round. Cap ranges span the season’s available
+            weeks, carrying the last reported cap through a missing weekly snapshot.
+          </p>
         </div>
       </section>
 

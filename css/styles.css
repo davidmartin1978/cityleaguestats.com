@@ -336,21 +336,6 @@ h3 {
   color: var(--ink);
 }
 
-.hero {
-  position: relative;
-  height: clamp(260px, 33.333vw, 724px);
-  overflow: hidden;
-  background: var(--forest);
-}
-
-.hero-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
 .eyebrow {
   margin-bottom: 15px;
   color: var(--forest-2);
@@ -487,11 +472,27 @@ h3 {
   background: #f7f7f1;
 }
 
+#player-table-search {
+  width: 230px;
+}
+
 .table-scroll {
   width: 100%;
   overflow-x: auto;
   scrollbar-color: #a8b2ac transparent;
   scrollbar-width: thin;
+}
+
+.player-table-scroll {
+  max-height: min(68vh, 620px);
+  overflow: auto;
+}
+
+.player-table-scroll thead th {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  box-shadow: 0 1px 0 #d9ddd5;
 }
 
 table {
@@ -563,18 +564,22 @@ tbody td {
   font-size: 12px;
 }
 
-#standings-table tbody tr {
+#standings-table tbody tr,
+#player-table tbody tr {
   cursor: pointer;
   transition: background 120ms ease;
 }
 
 #standings-table tbody tr:hover,
-#standings-table tbody tr:focus {
+#standings-table tbody tr:focus,
+#player-table tbody tr:hover,
+#player-table tbody tr:focus {
   background: #f2f5e8;
   outline: none;
 }
 
-#standings-table tbody tr.selected {
+#standings-table tbody tr.selected,
+#player-table tbody tr.selected {
   background: rgba(214, 239, 115, 0.2);
   box-shadow: inset 3px 0 var(--forest);
 }
@@ -598,6 +603,19 @@ tbody td {
 #standings-table .total-cell {
   color: var(--forest);
   font-weight: 900;
+}
+
+#player-table th:not(:first-child),
+#player-table td:not(:first-child) {
+  text-align: right;
+}
+
+#player-table .player-team-cell {
+  min-width: 260px;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .table-note {
@@ -1555,6 +1573,10 @@ tbody td {
   }
 
   .search-field input {
+    width: 145px;
+  }
+
+  #player-table-search {
     width: 145px;
   }
 

@@ -27,6 +27,9 @@
     standingRows: [],
     standingsSort: { key: "placeValue", direction: "asc" },
     teamFilter: "",
+    playerRows: [],
+    playerTableSort: { key: "averageNet", direction: "asc" },
+    playerTableFilter: "",
     selectedTeamId: null,
     selectedPlayerId: null,
     movementFocusId: null,
@@ -71,6 +74,8 @@
       "standings-updated",
       "standings-table",
       "team-table-search",
+      "player-table",
+      "player-table-search",
       "movement-team",
       "movement-all",
       "movement-chart",
@@ -111,6 +116,11 @@
       renderStandingsBody();
     });
 
+    elements.playerTableSearch.addEventListener("input", (event) => {
+      state.playerTableFilter = event.target.value.trim().toLocaleLowerCase();
+      renderPlayerTableBody();
+    });
+
     elements.movementTeam.addEventListener("change", (event) => {
       state.movementFocusId = event.target.value;
       renderMovement();
@@ -125,6 +135,7 @@
     elements.playerSelect.addEventListener("change", (event) => {
       state.selectedPlayerId = event.target.value;
       renderPlayer();
+      renderPlayerTableBody();
     });
 
     document.querySelectorAll("[data-ranking-mode]").forEach((button) => {
@@ -165,6 +176,10 @@
     elements.teamTableSearch.value = "";
     state.standingsSort = { key: "placeValue", direction: "asc" };
     state.standingRows = buildStandingRows();
+    state.playerTableFilter = "";
+    elements.playerTableSearch.value = "";
+    state.playerTableSort = { key: "averageNet", direction: "asc" };
+    state.playerRows = buildPlayerRows();
 
     const leader = [...state.season.teams].sort(comparePlace)[0];
     state.selectedTeamId = leader.id;
@@ -177,6 +192,7 @@
     renderSeasonMeta();
     renderStandings();
     renderMovement();
+    renderPlayerTable();
     renderPlayer();
     renderRankings();
   }
@@ -213,6 +229,40 @@
         highNet: maxOrNull(netScores),
       };
     });
+  }
+
+  function buildPlayerRows() {
+    return state.season.teams
+      .flatMap((team) =>
+        team.players.map((player) => {
+          const records = playerRecords(player);
+          const grossScores = records.map((record) => record.gross).filter(isNumber);
+          const netScores = records.map((record) => record.net).filter(isNumber);
+          const caps = state.season.rounds
+            .map((round) => handicapForWeek(player, round.week)?.handicap)
+            .filter(isNumber);
+
+          return {
+            id: player.id,
+            teamId: team.id,
+            playerName: player.name,
+            teamName: team.name,
+            displayName: `${player.name} - ${team.name}`,
+            search: `${player.name} ${team.name}`.toLocaleLowerCase(),
+            roundsPlayed: grossScores.length,
+            lowGross: minOrNull(grossScores),
+            averageGross: meanOrNull(grossScores),
+            highGross: maxOrNull(grossScores),
+            lowNet: minOrNull(netScores),
+            averageNet: meanOrNull(netScores),
+            highNet: maxOrNull(netScores),
+            lowCap: minOrNull(caps),
+            averageCap: meanOrNull(caps),
+            highCap: maxOrNull(caps),
+          };
+        })
+      )
+      .filter((row) => row.roundsPlayed > 0);
   }
 
   function renderSeasonMeta() {
@@ -337,6 +387,117 @@
     return state.standingsSort.direction === "asc" ? "ascending" : "descending";
   }
 
+  function renderPlayerTable() {
+    const columns = playerTableColumns();
+    const row = document.createElement("tr");
+
+    for (const column of columns) {
+      const th = document.createElement("th");
+      th.scope = "col";
+      th.dataset.key = column.key;
+      th.setAttribute("aria-sort", playerTableSortAria(column.key));
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = column.label;
+      button.title = `Sort by ${column.label}`;
+      button.addEventListener("click", () => sortPlayerTable(column.key));
+      th.append(button);
+      row.append(th);
+    }
+
+    elements.playerTable.tHead.replaceChildren(row);
+    renderPlayerTableBody();
+  }
+
+  function playerTableColumns() {
+    return [
+      { key: "displayName", label: "Player - Team", format: (value) => value },
+      { key: "roundsPlayed", label: "Rounds played", format: formatWhole },
+      { key: "lowGross", label: "Low gross", format: formatWhole },
+      { key: "averageGross", label: "Avg gross", format: formatOne },
+      { key: "highGross", label: "High gross", format: formatWhole },
+      { key: "lowNet", label: "Low net", format: formatWhole },
+      { key: "averageNet", label: "Avg net", format: formatOne },
+      { key: "highNet", label: "High net", format: formatWhole },
+      { key: "lowCap", label: "Low cap", format: formatOne },
+      { key: "averageCap", label: "Avg cap", format: formatOne },
+      { key: "highCap", label: "High cap", format: formatOne },
+    ];
+  }
+
+  function renderPlayerTableBody() {
+    const columns = playerTableColumns();
+    const filtered = state.playerRows
+      .filter((row) => row.search.includes(state.playerTableFilter))
+      .sort(playerTableComparator);
+    const fragment = document.createDocumentFragment();
+
+    for (const data of filtered) {
+      const row = document.createElement("tr");
+      row.tabIndex = 0;
+      row.dataset.playerId = data.id;
+      row.classList.toggle("selected", data.id === state.selectedPlayerId);
+      row.setAttribute("aria-label", `${data.displayName}. Open player stats.`);
+      row.addEventListener("click", () => openPlayerFromSearch(data.teamId, data.id));
+      row.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openPlayerFromSearch(data.teamId, data.id);
+        }
+      });
+
+      for (const column of columns) {
+        const cell = document.createElement("td");
+        cell.textContent = column.format(data[column.key], data);
+        if (column.key === "displayName") cell.className = "player-team-cell";
+        row.append(cell);
+      }
+      fragment.append(row);
+    }
+
+    if (!filtered.length) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = columns.length;
+      cell.textContent = "No players or teams match that search.";
+      cell.style.textAlign = "center";
+      cell.style.padding = "28px";
+      row.append(cell);
+      fragment.append(row);
+    }
+
+    elements.playerTable.tBodies[0].replaceChildren(fragment);
+    elements.playerTable.tHead.querySelectorAll("th").forEach((th) => {
+      th.setAttribute("aria-sort", playerTableSortAria(th.dataset.key));
+    });
+  }
+
+  function sortPlayerTable(key) {
+    if (state.playerTableSort.key === key) {
+      state.playerTableSort.direction = state.playerTableSort.direction === "asc" ? "desc" : "asc";
+    } else {
+      state.playerTableSort = { key, direction: "asc" };
+    }
+    renderPlayerTableBody();
+  }
+
+  function playerTableComparator(a, b) {
+    const key = state.playerTableSort.key;
+    const direction = state.playerTableSort.direction === "asc" ? 1 : -1;
+    const aValue = a[key];
+    const bValue = b[key];
+    if (aValue == null && bValue == null) return a.displayName.localeCompare(b.displayName);
+    if (aValue == null) return 1;
+    if (bValue == null) return -1;
+    const comparison = typeof aValue === "string" ? aValue.localeCompare(bValue) : aValue - bValue;
+    return comparison * direction || a.displayName.localeCompare(b.displayName);
+  }
+
+  function playerTableSortAria(key) {
+    if (state.playerTableSort.key !== key) return "none";
+    return state.playerTableSort.direction === "asc" ? "ascending" : "descending";
+  }
+
   function populateTeamControls() {
     const teams = [...state.season.teams].sort(comparePlace);
     elements.movementTeam.replaceChildren(
@@ -383,6 +544,7 @@
     renderPlayer();
     renderMovement();
     renderStandingsBody();
+    renderPlayerTableBody();
     if (scrollToPlayers) {
       document.getElementById("players").scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -1280,6 +1442,7 @@
     renderPlayer();
     renderMovement();
     renderStandingsBody();
+    renderPlayerTableBody();
     document.getElementById("players").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
