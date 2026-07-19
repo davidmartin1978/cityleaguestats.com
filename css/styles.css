@@ -618,6 +618,19 @@ tbody td {
   font-weight: 800;
 }
 
+.player-profile-link {
+  color: var(--forest);
+  text-decoration-color: rgba(32, 87, 70, 0.35);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.player-profile-link:hover,
+.player-profile-link:focus-visible {
+  color: #a4472e;
+  text-decoration-color: currentColor;
+}
+
 .table-note {
   margin: 0;
   padding: 14px 28px;

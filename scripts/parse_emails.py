@@ -28,6 +28,8 @@ FORMAT_NAMES = {
     "mod": "Modified",
     "mat": "Match Play",
     "4 cl": "Four Clubs",
+    "alt": "Alternate Shot",
+    "pinky": "Pinky",
 }
 
 
@@ -60,12 +62,20 @@ def locate_table(lines: list[str]) -> tuple[int, list[str]]:
     for index, line in enumerate(lines):
         cells = [cell.strip() for cell in line.split("\t")]
         labels = {cell.upper() for cell in cells}
-        if {"HDCP", "TOTAL", "PLACE"}.issubset(labels):
+        if {"HDCP", "TOTAL"}.issubset(labels):
             return index, cells
     raise ValueError("No tab-separated standings table was found")
 
 
-def extract_course(subject: str) -> str:
+def extract_course(subject: str, path: Path) -> str:
+    filename_match = re.match(
+        r"\d{4}[_ -]+(.+?)[_ -]+week[_ -]+\d+",
+        path.stem,
+        re.IGNORECASE,
+    )
+    if filename_match:
+        return re.sub(r"[_ -]+", " ", filename_match.group(1)).strip().title()
+
     match = re.search(
         r"CityLeague\s+Golf\s+\d{4}\s+(.+?)\s+CityLeague\s+Week",
         subject,
@@ -115,14 +125,31 @@ def parse_email(path: Path) -> ParsedEmail:
     if body is None:
         raise ValueError("Email has no text/plain body")
 
-    result_week = extract_result_week(subject, path)
+    filename_week = extract_result_week(subject, path)
     lines = body.get_content().splitlines()
     header_index, header = locate_table(lines)
     width = len(header)
     handicap_index = next(i for i, value in enumerate(header) if value.upper() == "HDCP")
     total_index = next(i for i, value in enumerate(header) if value.upper() == "TOTAL")
-    place_index = next(i for i, value in enumerate(header) if value.upper() == "PLACE")
-    round_labels = header[1:handicap_index]
+    place_index = next(
+        (i for i, value in enumerate(header) if value.upper() == "PLACE"),
+        None,
+    )
+    completed_columns = [
+        column
+        for line in lines[header_index + 1 :]
+        if "\t" in line
+        for cells in [split_row(line, width)]
+        if as_number(cells[total_index]) is not None
+        for column in range(1, handicap_index)
+        if as_number(cells[column]) is not None
+    ]
+    result_week = max(
+        completed_columns,
+        default=min(filename_week, max(1, handicap_index - 1)),
+    )
+    round_labels = header[1:handicap_index][:result_week]
+    round_columns = range(1, 1 + len(round_labels))
 
     rounds = [
         {
@@ -151,17 +178,19 @@ def parse_email(path: Path) -> ParsedEmail:
             continue
 
         source_total = as_number(cells[total_index])
-        source_place = cells[place_index].strip()
-        is_team = source_total is not None and bool(source_place)
+        source_place = cells[place_index].strip() if place_index is not None else ""
+        is_team = source_total is not None and (
+            place_index is None or bool(source_place)
+        )
 
         if is_team:
             base_id = slugify(name)
             team_id = unique_id(base_id, team_ids)
-            team_scores = [as_number(cells[i]) for i in range(1, handicap_index)]
+            team_scores = [as_number(cells[i]) for i in round_columns]
             current_team = {
                 "id": team_id,
                 "name": name,
-                "place": source_place,
+                "place": source_place or str(len(teams) + 1),
                 "total": source_total,
                 "rounds": [
                     {"week": week, "net": score}
@@ -184,7 +213,7 @@ def parse_email(path: Path) -> ParsedEmail:
                 "handicap": as_number(cells[handicap_index]),
                 "rounds": [
                     parse_round(cells[column], week)
-                    for week, column in enumerate(range(1, handicap_index), start=1)
+                    for week, column in enumerate(round_columns, start=1)
                 ],
             }
         )
@@ -203,7 +232,7 @@ def parse_email(path: Path) -> ParsedEmail:
                 f"source total {team['total']}"
             )
 
-    course = extract_course(subject)
+    course = extract_course(subject, path)
     year = source_date.year
     season_id = f"{year}-{slugify(course)}"
     scored_players = sum(
@@ -267,6 +296,21 @@ def match_historical_player(
     if exact:
         return exact
 
+    name_candidates = [
+        player
+        for player in current_team["players"]
+        if player["name"].casefold() == historical_player["name"].casefold()
+    ]
+    if len(name_candidates) == 1:
+        return name_candidates[0]
+    cap_matches = [
+        player
+        for player in name_candidates
+        if player["handicap"] == historical_player["handicap"]
+    ]
+    if len(cap_matches) == 1:
+        return cap_matches[0]
+
     alias_candidates = [
         player
         for player in current_team["players"]
@@ -274,6 +318,32 @@ def match_historical_player(
         and player["handicap"] == historical_player["handicap"]
     ]
     return alias_candidates[0] if len(alias_candidates) == 1 else None
+
+
+def match_historical_team(
+    current_teams: dict[str, dict[str, Any]], historical_team: dict[str, Any]
+) -> dict[str, Any] | None:
+    exact = current_teams.get(historical_team["id"])
+    if exact:
+        return exact
+
+    historical_roster = {
+        slugify(player["name"]) for player in historical_team["players"]
+    }
+    candidates: list[tuple[float, dict[str, Any]]] = []
+    for current_team in current_teams.values():
+        current_roster = {
+            slugify(player["name"]) for player in current_team["players"]
+        }
+        union = historical_roster | current_roster
+        score = len(historical_roster & current_roster) / len(union) if union else 0
+        candidates.append((score, current_team))
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    if not candidates or candidates[0][0] < 0.7:
+        return None
+    if len(candidates) > 1 and candidates[0][0] == candidates[1][0]:
+        return None
+    return candidates[0][1]
 
 
 def attach_handicap_histories(
@@ -295,7 +365,7 @@ def attach_handicap_histories(
             "file": snapshot.season["source"]["file"],
         }
         for historical_team in snapshot.season["teams"]:
-            current_team = current_teams.get(historical_team["id"])
+            current_team = match_historical_team(current_teams, historical_team)
             if current_team is None:
                 warnings.append(
                     f"Week {snapshot.result_week}: no current team match for "
@@ -332,6 +402,38 @@ def attach_handicap_histories(
     season["validation"]["handicapHistoryWarnings"] = warnings
 
 
+def build_player_profiles(seasons: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    profiles: dict[str, dict[str, Any]] = {}
+    for season in seasons:
+        for team in season["teams"]:
+            for player in team["players"]:
+                profile_id = player["id"]
+                player["profileId"] = profile_id
+                profile = profiles.setdefault(
+                    profile_id,
+                    {
+                        "id": profile_id,
+                        "name": player["name"],
+                        "latestTeam": team["name"],
+                        "appearances": [],
+                    },
+                )
+                profile["appearances"].append(
+                    {
+                        "seasonId": season["id"],
+                        "year": season["year"],
+                        "league": season["league"],
+                        "teamId": team["id"],
+                        "teamName": team["name"],
+                        "playerId": player["id"],
+                    }
+                )
+    return sorted(
+        profiles.values(),
+        key=lambda profile: (profile["name"].casefold(), profile["id"]),
+    )
+
+
 def build_store(email_folder: Path) -> dict[str, Any]:
     latest: dict[str, ParsedEmail] = {}
     snapshots: dict[str, list[ParsedEmail]] = {}
@@ -365,10 +467,12 @@ def build_store(email_folder: Path) -> dict[str, Any]:
         attach_handicap_histories(item.season, snapshots[season_id])
         seasons.append(item.season)
     seasons.sort(key=lambda season: (season["year"], season["league"]), reverse=True)
+    player_profiles = build_player_profiles(seasons)
     return {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "generatedFrom": "emails/*.eml",
         "seasons": seasons,
+        "playerProfiles": player_profiles,
         "importWarnings": failures,
     }
 

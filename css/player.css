@@ -1,0 +1,426 @@
+.profile-site-header {
+  grid-template-columns: auto 1fr auto;
+}
+
+.profile-home-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 16px;
+  color: var(--forest);
+  background: var(--lime);
+  border: 1px solid rgba(22, 61, 50, 0.14);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.profile-home-link:hover,
+.profile-home-link:focus-visible {
+  background: var(--lime-2);
+  transform: translateY(-1px);
+}
+
+.profile-masthead {
+  position: relative;
+  overflow: hidden;
+  padding: 62px 0 88px;
+  color: white;
+  background:
+    radial-gradient(circle at 84% 16%, rgba(214, 239, 115, 0.2), transparent 27%),
+    linear-gradient(125deg, var(--forest-3), var(--forest-2));
+}
+
+.profile-masthead::after {
+  position: absolute;
+  right: -90px;
+  bottom: -220px;
+  width: 500px;
+  height: 500px;
+  content: "";
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 55px rgba(255, 255, 255, 0.025),
+    0 0 0 112px rgba(255, 255, 255, 0.02);
+}
+
+.profile-masthead .page-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.profile-breadcrumb {
+  display: inline-block;
+  margin-bottom: 34px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.profile-breadcrumb:hover,
+.profile-breadcrumb:focus-visible {
+  color: var(--lime);
+}
+
+.profile-masthead h1 {
+  max-width: 900px;
+  margin: 6px 0 18px;
+  color: white;
+  font-size: clamp(46px, 7vw, 92px);
+  line-height: 0.93;
+  letter-spacing: -0.065em;
+}
+
+.profile-team-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-team-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 11px;
+  color: var(--lime);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.profile-summary {
+  max-width: 720px;
+  margin: 22px 0 0;
+  color: rgba(255, 255, 255, 0.63);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.profile-career {
+  position: relative;
+  z-index: 2;
+  margin-top: -42px;
+}
+
+.career-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.career-stat-grid article {
+  min-width: 0;
+  padding: 24px 22px;
+  border-right: 1px solid var(--line);
+}
+
+.career-stat-grid article:last-child {
+  border-right: 0;
+}
+
+.career-stat-grid span,
+.mini-label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.career-stat-grid strong {
+  display: block;
+  overflow: hidden;
+  color: var(--forest);
+  font-family: var(--mono);
+  font-size: clamp(22px, 2.4vw, 34px);
+  line-height: 1;
+  text-overflow: ellipsis;
+}
+
+.profile-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.profile-chart-card {
+  min-width: 0;
+  padding: 24px 26px 18px;
+}
+
+.profile-chart-wide {
+  grid-column: 1 / -1;
+}
+
+.profile-chart {
+  min-height: 330px;
+}
+
+.profile-cap-chart {
+  min-height: 290px;
+}
+
+.profile-chart svg,
+.profile-cap-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.profile-chart-legend,
+.profile-chart-legend span {
+  display: flex;
+  align-items: center;
+}
+
+.profile-chart-legend {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px 13px;
+  max-width: 56%;
+}
+
+.profile-chart-legend span {
+  gap: 5px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.profile-chart-legend i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  background: var(--series-color);
+  border-radius: 50%;
+}
+
+.profile-chart-card .key {
+  flex: 0 0 auto;
+}
+
+.gross-key {
+  background: var(--forest-2) !important;
+}
+
+.net-key {
+  background: var(--coral) !important;
+}
+
+.profile-chart-card .reference-line {
+  stroke: #9aa59f;
+  stroke-dasharray: 4 5;
+}
+
+.profile-chart-card .series-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.profile-chart-card .series-point {
+  cursor: help;
+  stroke: var(--paper);
+  stroke-width: 2px;
+}
+
+.profile-data-table th:first-child,
+.profile-data-table td:first-child {
+  padding-left: 26px;
+}
+
+.profile-data-table th:last-child,
+.profile-data-table td:last-child {
+  padding-right: 26px;
+}
+
+.profile-data-table tbody td:first-child,
+.profile-data-table tbody td:nth-child(2),
+.profile-data-table tbody td:nth-child(3) {
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 800;
+}
+
+#profile-season-table th:nth-child(-n + 3),
+#profile-season-table td:nth-child(-n + 3),
+#profile-rounds-table th:nth-child(-n + 4),
+#profile-rounds-table td:nth-child(-n + 4) {
+  text-align: left;
+}
+
+#profile-rounds-table tbody td:nth-child(4) {
+  color: white;
+  font-family: var(--sans);
+  font-weight: 800;
+}
+
+.profile-data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.profile-rounds-card {
+  background: #102e26;
+  border-color: var(--line-dark);
+  box-shadow: none;
+}
+
+.profile-rounds-scroll {
+  max-height: 580px;
+  overflow: auto;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.profile-rounds-scroll thead th {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  color: rgba(255, 255, 255, 0.48);
+  background: #0e2922;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.profile-rounds-card tbody td {
+  color: rgba(255, 255, 255, 0.72);
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.profile-rounds-card tbody td:first-child,
+.profile-rounds-card tbody td:nth-child(2),
+.profile-rounds-card tbody td:nth-child(3) {
+  color: white;
+}
+
+.profile-rounds-card tbody tr:hover {
+  background: rgba(214, 239, 115, 0.06);
+}
+
+.profile-rounds-card .score-best {
+  color: var(--lime);
+  font-weight: 900;
+}
+
+.profile-rounds-card .cap-carried {
+  color: #f3b59f;
+}
+
+.profile-data-table .empty-row {
+  padding: 34px 26px;
+  color: var(--muted);
+  font-family: var(--sans);
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .career-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .career-stat-grid article:nth-child(3) {
+    border-right: 0;
+  }
+
+  .career-stat-grid article:nth-child(-n + 3) {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .profile-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profile-chart-wide {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .profile-site-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .profile-site-header .brand small {
+    display: none;
+  }
+
+  .profile-site-header .brand-logo {
+    width: 56px;
+    height: 56px;
+  }
+
+  .profile-home-link {
+    min-height: 34px;
+    padding-inline: 12px;
+    font-size: 9px;
+  }
+
+  .profile-masthead {
+    padding: 42px 0 72px;
+  }
+
+  .profile-breadcrumb {
+    margin-bottom: 25px;
+  }
+
+  .profile-masthead h1 {
+    font-size: clamp(42px, 15vw, 68px);
+  }
+
+  .profile-career {
+    margin-top: -34px;
+  }
+
+  .career-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .career-stat-grid article,
+  .career-stat-grid article:nth-child(3) {
+    padding: 19px 16px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .career-stat-grid article:nth-child(even) {
+    border-right: 0;
+  }
+
+  .career-stat-grid article:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .profile-chart-card {
+    padding: 20px 15px 12px;
+  }
+
+  .profile-chart-card .mini-card-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .profile-chart-legend {
+    justify-content: flex-start;
+    max-width: none;
+  }
+
+  .profile-chart {
+    min-height: 280px;
+  }
+}

@@ -244,6 +244,7 @@
 
           return {
             id: player.id,
+            profileId: player.profileId || player.id,
             teamId: team.id,
             playerName: player.name,
             teamName: team.name,
@@ -448,8 +449,19 @@
 
       for (const column of columns) {
         const cell = document.createElement("td");
-        cell.textContent = column.format(data[column.key], data);
-        if (column.key === "displayName") cell.className = "player-team-cell";
+        if (column.key === "displayName") {
+          cell.className = "player-team-cell";
+          const link = document.createElement("a");
+          link.className = "player-profile-link";
+          link.href = `players/${encodeURIComponent(data.profileId)}.html`;
+          link.textContent = data.playerName;
+          link.title = `View ${data.playerName}'s career profile`;
+          link.addEventListener("click", (event) => event.stopPropagation());
+          link.addEventListener("keydown", (event) => event.stopPropagation());
+          cell.append(link, ` - ${data.teamName}`);
+        } else {
+          cell.textContent = column.format(data[column.key], data);
+        }
         row.append(cell);
       }
       fragment.append(row);
