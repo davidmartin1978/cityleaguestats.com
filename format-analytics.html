@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="See the City League team net scores that define a good, typical, or poor day in every golf format."
+    />
+    <meta name="theme-color" content="#163d32" />
+    <title>Format Analytics | City League Golf Stats</title>
+    <link rel="canonical" href="https://cityleaguestats.com/format-analytics.html" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/formats.css" />
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+    <script src="js/formats.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to format analytics</a>
+
+    <header class="site-header format-site-header">
+      <a class="brand" href="index.html" aria-label="City League Stats home">
+        <img
+          class="brand-logo"
+          src="pinky_logo.png"
+          alt=""
+          width="1024"
+          height="1024"
+        />
+        <span>
+          <strong>City League</strong>
+          <small>Format analytics</small>
+        </span>
+      </a>
+
+      <nav class="primary-nav" aria-label="Format page navigation">
+        <a href="index.html#standings">Standings</a>
+        <a href="index.html#player-standings">Players</a>
+        <a href="index.html#sandbag">Rankings</a>
+        <a href="#format-cards" aria-current="page">Formats</a>
+      </nav>
+
+      <a class="format-home-link" href="index.html">Back to dashboard</a>
+    </header>
+
+    <main id="main-content">
+      <div id="format-load-error" class="load-error page-shell" role="alert" hidden>
+        <strong>Couldn’t load the format scorecard.</strong>
+        <span>Serve this folder with a local web server and refresh.</span>
+      </div>
+
+      <section class="format-hero">
+        <div class="page-shell format-hero-layout">
+          <div>
+            <p class="eyebrow">Know the number</p>
+            <h1>What does a good day take?</h1>
+            <p class="format-hero-copy">
+              Every format has its own scoring scale. These targets use actual team net
+              results to show the score that usually gains ground, lands in the middle,
+              or turns into a setback.
+            </p>
+          </div>
+          <div class="format-filter-card">
+            <label class="field" for="format-season-select">
+              <span>Results to include</span>
+              <select id="format-season-select"></select>
+            </label>
+            <p id="format-scope-note">Loading score history…</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section page-shell format-overview-section" aria-label="Format data overview">
+        <div class="format-overview" id="format-overview">
+          <article><span>Seasons</span><strong id="format-season-count">—</strong></article>
+          <article><span>Formats</span><strong id="format-count">—</strong></article>
+          <article><span>Team scores</span><strong id="format-score-count">—</strong></article>
+        </div>
+        <div class="format-key" aria-label="Score target definitions">
+          <span><i class="target-good"></i>Good day: best quarter of results</span>
+          <span><i class="target-typical"></i>Typical: median result</span>
+          <span><i class="target-poor"></i>Setback: worst quarter of results</span>
+        </div>
+      </section>
+
+      <section id="format-cards" class="section section-tint">
+        <div class="page-shell">
+          <div class="section-heading split-heading">
+            <div>
+              <p class="eyebrow">Team net targets</p>
+              <h2>Benchmarks by format</h2>
+              <p>
+                Lower is better. The band shows the middle half of team scores; the
+                line is the median and the dot is the average.
+              </p>
+            </div>
+          </div>
+          <div id="format-card-grid" class="format-card-grid" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="section page-shell">
+        <div class="section-heading">
+          <p class="eyebrow">The full card</p>
+          <h2>Format score ranges</h2>
+          <p>Use the cutoffs as targets, then check the sample size before calling it a trend.</p>
+        </div>
+        <div class="table-card">
+          <div class="table-scroll">
+            <table id="format-table" class="format-table">
+              <caption class="sr-only">Good, average, and poor team net scores by format</caption>
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="table-note">
+            “Good” is the 25th-percentile cutoff rounded down; “setback” is the
+            75th-percentile cutoff rounded up. Median and average retain one decimal
+            when needed.
+          </p>
+        </div>
+      </section>
+
+      <section class="section section-dark format-method">
+        <div class="page-shell">
+          <div class="section-heading dark-heading">
+            <p class="eyebrow eyebrow-light">Method</p>
+            <h2>Built from the standings that counted.</h2>
+            <p>
+              Each observation is one team’s net result for one format. The final
+              available standings table in each season supplies the scores, so later
+              corrections take priority. Individual gross scores and X-marked rounds
+              do not affect these team-format benchmarks.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="page-shell">
+        <div class="brand footer-brand">
+          <img
+            class="brand-logo"
+            src="pinky_logo.png"
+            alt=""
+            width="1024"
+            height="1024"
+            loading="lazy"
+          />
+          <span><strong>City League Stats</strong><small>Golf, unpacked.</small></span>
+        </div>
+        <p><a href="index.html">Return to the season dashboard</a></p>
+      </div>
+    </footer>
+
+    <noscript>
+      <div class="noscript">JavaScript is required to calculate format benchmarks.</div>
+    </noscript>
+  </body>
+</html>

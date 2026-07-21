@@ -199,7 +199,7 @@
 
   function buildStandingRows() {
     return state.season.teams.map((team) => {
-      const playersUsed = team.players.filter((player) => numericPlayerRounds(player).length > 0).length;
+      const playersUsed = team.players.filter((player) => playedPlayerRounds(player).length > 0).length;
       const caps = team.players.map((player) => player.handicap).filter(isNumber);
       const grossScores = team.players.flatMap((player) =>
         player.rounds.map((round) => round.gross).filter(isNumber)
@@ -236,6 +236,7 @@
       .flatMap((team) =>
         team.players.map((player) => {
           const records = playerRecords(player);
+          const playedRecords = records.filter((record) => record.played);
           const grossScores = records.map((record) => record.gross).filter(isNumber);
           const netScores = records.map((record) => record.net).filter(isNumber);
           const caps = state.season.rounds
@@ -250,7 +251,8 @@
             teamName: team.name,
             displayName: `${player.name} - ${team.name}`,
             search: `${player.name} ${team.name}`.toLocaleLowerCase(),
-            roundsPlayed: grossScores.length,
+            roundsPlayed: playedRecords.length,
+            scorableRounds: grossScores.length,
             lowGross: minOrNull(grossScores),
             averageGross: meanOrNull(grossScores),
             highGross: maxOrNull(grossScores),
@@ -414,6 +416,7 @@
     return [
       { key: "displayName", label: "Player - Team", format: (value) => value },
       { key: "roundsPlayed", label: "Rounds played", format: formatWhole },
+      { key: "scorableRounds", label: "Scorable", format: formatWhole },
       { key: "lowGross", label: "Low gross", format: formatWhole },
       { key: "averageGross", label: "Avg gross", format: formatOne },
       { key: "highGross", label: "High gross", format: formatWhole },
@@ -524,13 +527,14 @@
     const team = selectedTeam();
     if (!team) return;
     const players = [...team.players].sort((a, b) => {
-      const roundsDifference = numericPlayerRounds(b).length - numericPlayerRounds(a).length;
-      return roundsDifference || a.name.localeCompare(b.name);
+      const playedDifference = playedPlayerRounds(b).length - playedPlayerRounds(a).length;
+      const scorableDifference = numericPlayerRounds(b).length - numericPlayerRounds(a).length;
+      return playedDifference || scorableDifference || a.name.localeCompare(b.name);
     });
 
     elements.playerSelect.replaceChildren(
       ...players.map((player) => {
-        const rounds = numericPlayerRounds(player).length;
+        const rounds = playedPlayerRounds(player).length;
         const cap = player.handicap == null ? "no cap" : `cap ${player.handicap}`;
         return new Option(`${player.name} · ${cap} · ${rounds} rd`, player.id);
       })
@@ -736,19 +740,24 @@
     const team = selectedTeam();
     const player = selectedPlayer();
     if (!team || !player) return;
-    const records = playerRecords(player).filter((record) => isNumber(record.gross));
+    const allRecords = playerRecords(player);
+    const playedRecords = allRecords.filter((record) => record.played);
+    const records = allRecords.filter((record) => isNumber(record.gross));
     const netRecords = records.filter((record) => isNumber(record.net));
+    const omittedCount = playedRecords.length - records.length;
 
     elements.playerTeamName.textContent = team.name;
     elements.playerName.textContent = player.name;
     elements.playerCap.textContent = player.handicap ?? "—";
-    elements.playerRounds.textContent = records.length;
+    elements.playerRounds.textContent = playedRecords.length;
     elements.playerAvgGross.textContent = formatOne(meanOrNull(records.map((record) => record.gross)));
     elements.playerAvgNet.textContent = formatOne(meanOrNull(netRecords.map((record) => record.net)));
     elements.playerBestNet.textContent = formatWhole(minOrNull(netRecords.map((record) => record.net)));
-    elements.roundsSummary.textContent = records.length
-      ? `${records.length} recorded round${records.length === 1 ? "" : "s"}`
-      : "No numeric scores yet";
+    elements.roundsSummary.textContent = playedRecords.length
+      ? omittedCount
+        ? `${playedRecords.length} played · ${records.length} scorable · ${omittedCount} marked X`
+        : `${playedRecords.length} recorded round${playedRecords.length === 1 ? "" : "s"}`
+      : "No rounds played yet";
 
     renderDistribution(records);
     renderCapHistory(player);
@@ -1076,7 +1085,7 @@
     });
     elements.roundsTable.tHead.replaceChildren(header);
 
-    const records = playerRecords(player).filter((record) => record.raw != null);
+    const records = playerRecords(player).filter((record) => record.played);
     const fragment = document.createDocumentFragment();
     for (const record of records) {
       const row = document.createElement("tr");
@@ -1524,6 +1533,8 @@
         gross: score.gross,
         raw: score.raw,
         markers: score.markers || [],
+        played: isPlayedRound(score),
+        omitted: score.omitted === true,
         handicap,
         handicapWeek: appliedCap?.reportedWeek ?? null,
         handicapCarried: appliedCap?.carried ?? false,
@@ -1537,10 +1548,24 @@
     return player.rounds.filter((round) => isNumber(round.gross));
   }
 
+  function playedPlayerRounds(player) {
+    return player.rounds.filter(isPlayedRound);
+  }
+
+  function isPlayedRound(round) {
+    return (
+      round?.played === true ||
+      isNumber(round?.gross) ||
+      round?.omitted === true ||
+      round?.markers?.some((marker) => marker.toLocaleLowerCase() === "x")
+    );
+  }
+
   function bestDefaultPlayer(team) {
     return [...team.players].sort((a, b) => {
-      const difference = numericPlayerRounds(b).length - numericPlayerRounds(a).length;
-      return difference || a.name.localeCompare(b.name);
+      const playedDifference = playedPlayerRounds(b).length - playedPlayerRounds(a).length;
+      const scorableDifference = numericPlayerRounds(b).length - numericPlayerRounds(a).length;
+      return playedDifference || scorableDifference || a.name.localeCompare(b.name);
     })[0];
   }
 

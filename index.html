@@ -68,6 +68,7 @@
         <a href="#standings">Standings</a>
         <a href="#player-standings">Players</a>
         <a href="#sandbag">Rankings</a>
+        <a href="format-analytics.html">Formats</a>
       </nav>
 
       <div class="header-tools">
@@ -135,7 +136,8 @@
             </table>
           </div>
           <p class="table-note">
-            “Players used” counts golfers with at least one numeric round. Low,
+            “Players used” counts golfers with a numeric score or an X-marked round.
+            An X counts as played but is excluded from gross and net statistics. Low,
             average, and high caps include every listed golfer with a cap.
           </p>
         </div>
@@ -175,7 +177,7 @@
         <div class="section-heading">
           <h2>Player Details</h2>
           <p>
-            Compare scoring and handicap ranges for every golfer with a recorded round.
+            Compare scoring and handicap ranges for every golfer who played a round.
           </p>
         </div>
 
@@ -205,9 +207,9 @@
             </table>
           </div>
           <p class="table-note">
-            Only golfers with at least one recorded round are shown. Net scores use
-            the cap applied for each round. Cap ranges span the season’s available
-            weeks, carrying the last reported cap through a missing weekly snapshot.
+            “Rounds played” includes X-marked rounds; “Scorable” and every gross or net
+            statistic use numeric scores only. Net scores use the cap applied for each
+            round. Cap ranges carry the last reported cap through a missing snapshot.
           </p>
         </div>
       </section>
@@ -251,7 +253,8 @@
             </div>
             <p>
               Net scores use the cap reported for each week. Missing snapshots use
-              the most recent earlier cap.
+              the most recent earlier cap. X means the golfer played without a scorable
+              individual score.
             </p>
           </article>
 
@@ -368,8 +371,8 @@
           <p class="method-note">
             Net score equals gross minus the cap reported for that week; the last
             earlier cap carries through a missing snapshot. Exactly 36 is even par;
-            missing scores or unavailable caps are excluded, and team values combine
-            recorded player rounds.
+            missing scores, X-marked rounds, or unavailable caps are excluded, and team
+            values combine scorable player rounds.
           </p>
         </div>
       </section>

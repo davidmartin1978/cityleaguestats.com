@@ -96,6 +96,8 @@
             shortName: round.shortName,
             gross,
             raw: score.raw,
+            played: isPlayedRound(score),
+            omitted: score.omitted === true,
             handicap,
             handicapWeek: appliedCap?.reportedWeek ?? null,
             handicapCarried: appliedCap?.carried ?? false,
@@ -113,6 +115,7 @@
           league: season.league,
           teamName: team.name,
           records,
+          playedRecords: records.filter((record) => record.played),
           numericRecords: records.filter((record) => isNumber(record.gross)),
           capHistory: normalizedCapHistory(player, season),
         };
@@ -199,18 +202,19 @@
         : `${Math.min(...years)}–${Math.max(...years)}`
       : "No seasons";
     const seasonWord = state.seasons.length === 1 ? "season" : "seasons";
-    const roundCount = state.records.filter((record) => isNumber(record.gross)).length;
-    const roundWord = roundCount === 1 ? "recorded round" : "recorded rounds";
+    const roundCount = state.records.filter((record) => record.played).length;
+    const roundWord = roundCount === 1 ? "round played" : "rounds played";
     elements.profileSummary.textContent = `${state.seasons.length} ${seasonWord} (${range}) · ${roundCount} ${roundWord} · Latest team: ${state.profile.latestTeam}`;
   }
 
   function renderCareerStats() {
-    const rounds = state.records.filter((record) => isNumber(record.gross));
-    const gross = rounds.map((record) => record.gross);
-    const net = rounds.map((record) => record.net).filter(isNumber);
+    const playedRounds = state.records.filter((record) => record.played);
+    const scoredRounds = state.records.filter((record) => isNumber(record.gross));
+    const gross = scoredRounds.map((record) => record.gross);
+    const net = scoredRounds.map((record) => record.net).filter(isNumber);
 
     elements.careerSeasons.textContent = formatWhole(state.seasons.length);
-    elements.careerRounds.textContent = formatWhole(rounds.length);
+    elements.careerRounds.textContent = formatWhole(playedRounds.length);
     elements.careerAvgGross.textContent = formatOne(meanOrNull(gross));
     elements.careerAvgNet.textContent = formatOne(meanOrNull(net));
     elements.careerBestGross.textContent = formatWhole(minOrNull(gross));
@@ -240,7 +244,7 @@
         year: entry.year,
         league: entry.league,
         team: entry.teamName,
-        rounds: formatWhole(gross.length),
+        rounds: formatWhole(entry.playedRecords.length),
         avgGross: formatOne(meanOrNull(gross)),
         avgNet: formatOne(meanOrNull(net)),
         bestGross: formatWhole(minOrNull(gross)),
@@ -281,7 +285,7 @@
     renderHeader(elements.profileRoundsTable, columns);
 
     const records = state.records
-      .filter((record) => isNumber(record.gross))
+      .filter((record) => record.played)
       .filter((record) => state.filter === "all" || record.seasonId === state.filter)
       .sort((a, b) => b.year - a.year || b.week - a.week);
     const careerBestGross = minOrNull(state.records.map((record) => record.gross).filter(isNumber));
@@ -295,7 +299,7 @@
         week: `Week ${record.week}`,
         format: record.format || record.shortName || "—",
         teamName: record.teamName,
-        gross: formatWhole(record.gross),
+        gross: record.omitted ? "X" : formatWhole(record.gross),
         handicap: formatAppliedCap(record),
         net: formatWhole(record.net),
         toPar: formatToPar(record.toPar),
@@ -686,6 +690,16 @@
 
   function isNumber(value) {
     return typeof value === "number" && Number.isFinite(value);
+  }
+
+  function isPlayedRound(round) {
+    return (
+      round?.played === true ||
+      isNumber(round?.gross) ||
+      round?.omitted === true ||
+      round?.markers?.some((marker) => marker.toLocaleLowerCase() === "x") ||
+      (typeof round?.raw === "string" && round.raw.trim().toLocaleLowerCase() === "x")
+    );
   }
 
   function toCamel(value) {

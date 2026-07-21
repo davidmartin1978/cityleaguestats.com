@@ -29,16 +29,23 @@ Then open `http://localhost:8000`. The deployed site needs only the repository's
 
 4. Review the validation summary and commit `data/seasons.json` and `players/`.
 
-For each season, the importer keeps the newest email with the largest week count as the season-to-date standings and merges the handicap listed in every available weekly email into each player's `handicapHistory`. The season's `handicapWeeks` array records the source email for each snapshot. Team scores are treated as net. Player scores are treated as gross, and the website subtracts the handicap reported for that week. When a weekly snapshot is missing, the most recent earlier handicap carries forward; a player with no earlier cap has no calculated net for that round.
+For each season, the importer uses the highest-week email as the authoritative standings and individual-score table. Earlier emails never overwrite those scores; they supply commissioner handicaps and score-consistency checks only. The importer accepts HTML tables, tab-delimited plain text, quoted replies, and common Apple Mail wrapping differences. The season's `handicapWeeks` array records each usable snapshot. When a weekly snapshot or player cap is missing, the most recent earlier handicap carries forward; a player with no earlier cap has no calculated net for that round.
+
+Team scores are treated as net. Numeric player scores are treated as gross, and the website subtracts the handicap reported or carried into that week. An `X` means the golfer played but omitted an individual score: it counts toward rounds played and players used, but is excluded from gross, net, distribution, ranking, and other scorable-round statistics.
+
+The separate `format-analytics.html` page derives team-net benchmarks directly in the browser. For each format, it presents the best-quartile cutoff as a good day, the median as typical, and the worst-quartile cutoff as a setback. No server-side data processing is required on GitHub Pages.
 
 The importer also creates a `playerProfiles` index. A profile follows the same player name on the same team across seasons, which is the safest available identity in the source emails. A name on a different team remains a separate profile because the emails do not provide a unique league-wide player ID. The generator turns that index into shareable pages under `players/`; edit `templates/player-page.html`, `css/player.css`, or `js/player.js`, then rerun the generator when the roster changes.
 
 ## Files
 
 - `index.html` — semantic page structure and controls
+- `format-analytics.html` — cross-season format score targets
 - `css/styles.css` — responsive layout and visual system
+- `css/formats.css` — format analytics page styles
 - `css/player.css` — player reference page layout
 - `js/app.js` — filtering, derived statistics, and D3 charts
+- `js/formats.js` — client-side format benchmarks and range charts
 - `js/player.js` — career summaries, game logs, and player charts
 - `data/seasons.json` — static browser data store
 - `scripts/parse_emails.py` — offline `.eml` table importer
