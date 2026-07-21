@@ -31,6 +31,7 @@
     <link rel="stylesheet" href="../css/styles.css" />
     <link rel="stylesheet" href="../css/player.css" />
     <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+    <script src="../js/navigation.js" defer></script>
     <script src="../js/player.js" defer></script>
   </head>
   <body data-profile-id="cherry-truck-bombers-andy">
@@ -51,7 +52,9 @@
         </span>
       </a>
 
-      <nav class="primary-nav" aria-label="Player page navigation">
+      <nav id="primary-navigation" class="primary-nav" aria-label="Player page navigation">
+        <a href="../index.html">Dashboard</a>
+        <a href="../format-analytics.html">Formats</a>
         <a href="#career">Career</a>
         <a href="#charts">Charts</a>
         <a href="#seasons">Seasons</a>
@@ -59,6 +62,16 @@
       </nav>
 
       <a class="profile-home-link" href="../index.html#player-standings">All players</a>
+      <button
+        class="mobile-nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-navigation"
+        aria-label="Open navigation"
+      >
+        <span class="mobile-nav-icon" aria-hidden="true"></span>
+        <span class="sr-only mobile-nav-label">Open navigation</span>
+      </button>
     </header>
 
     <main id="main-content">

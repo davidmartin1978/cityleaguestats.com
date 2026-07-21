@@ -352,7 +352,7 @@
 
 @media (max-width: 620px) {
   .profile-site-header {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr auto;
   }
 
   .profile-site-header .brand small {

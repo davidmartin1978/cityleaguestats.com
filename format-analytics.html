@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/formats.css" />
     <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+    <script src="js/navigation.js" defer></script>
     <script src="js/formats.js" defer></script>
   </head>
   <body>
@@ -34,7 +35,7 @@
         </span>
       </a>
 
-      <nav class="primary-nav" aria-label="Format page navigation">
+      <nav id="primary-navigation" class="primary-nav" aria-label="Format page navigation">
         <a href="index.html#standings">Standings</a>
         <a href="index.html#player-standings">Players</a>
         <a href="index.html#sandbag">Rankings</a>
@@ -42,6 +43,16 @@
       </nav>
 
       <a class="format-home-link" href="index.html">Back to dashboard</a>
+      <button
+        class="mobile-nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-navigation"
+        aria-label="Open navigation"
+      >
+        <span class="mobile-nav-icon" aria-hidden="true"></span>
+        <span class="sr-only mobile-nav-label">Open navigation</span>
+      </button>
     </header>
 
     <main id="main-content">

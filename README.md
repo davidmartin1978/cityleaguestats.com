@@ -46,6 +46,7 @@ The importer also creates a `playerProfiles` index. A profile follows the same p
 - `css/player.css` — player reference page layout
 - `js/app.js` — filtering, derived statistics, and D3 charts
 - `js/formats.js` — client-side format benchmarks and range charts
+- `js/navigation.js` — shared responsive navigation behavior
 - `js/player.js` — career summaries, game logs, and player charts
 - `data/seasons.json` — static browser data store
 - `scripts/parse_emails.py` — offline `.eml` table importer
