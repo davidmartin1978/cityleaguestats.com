@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Explore City League player scoring and handicap stats by venue and season."
+    />
+    <meta name="theme-color" content="#163d32" />
+    <title>Player Stats | City League Golf Stats</title>
+    <link rel="canonical" href="https://cityleaguestats.com/player-stats.html" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+    <script src="js/navigation.js" defer></script>
+    <script src="js/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to player stats</a>
+
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="City League Stats home">
+        <img
+          class="brand-logo"
+          src="pinky_logo.png"
+          alt=""
+          width="1024"
+          height="1024"
+        />
+        <span>
+          <strong>City League</strong>
+          <small>Golf stats</small>
+        </span>
+      </a>
+
+      <nav id="primary-navigation" class="primary-nav" aria-label="Primary navigation">
+        <a href="index.html">Season Standings</a>
+        <a href="player-stats.html" aria-current="page">Player Stats</a>
+        <a href="handicap-analysis.html">Handicap Analysis</a>
+        <a href="format-analytics.html">Format Analysis</a>
+      </nav>
+
+      <div class="header-tools">
+        <div class="global-search">
+          <label class="sr-only" for="global-search">Search teams or players</label>
+          <span aria-hidden="true" class="search-icon"></span>
+          <input
+            id="global-search"
+            type="search"
+            placeholder="Find team or player"
+            autocomplete="off"
+            aria-expanded="false"
+            aria-controls="search-results"
+          />
+          <div id="search-results" class="search-results" role="listbox" hidden></div>
+        </div>
+        <label class="season-control" for="season-select">
+          <span>Season</span>
+          <select id="season-select" aria-label="Select season"></select>
+        </label>
+      </div>
+      <button
+        class="mobile-nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-navigation"
+        aria-label="Open navigation"
+      >
+        <span class="mobile-nav-icon" aria-hidden="true"></span>
+        <span class="sr-only mobile-nav-label">Open navigation</span>
+      </button>
+    </header>
+
+    <main id="main-content">
+      <div id="load-error" class="load-error page-shell" role="alert" hidden>
+        <strong>Couldn’t load the scorecard.</strong>
+        <span>Serve this folder with a small local web server and refresh.</span>
+      </div>
+
+      <section id="player-standings" class="section page-shell">
+        <div class="section-heading">
+          <h2 id="player-details-title">Player Details - Jefferson - 2026</h2>
+          <p>Compare scoring and handicap ranges for every golfer who played a round.</p>
+        </div>
+
+        <aside class="profile-callout" aria-label="All-time player stats">
+          <strong>Looking for a player’s all-time stats?</strong>
+          <span>Click their name in the table to open their dedicated career page.</span>
+        </aside>
+
+        <div class="table-card">
+          <div class="card-toolbar">
+            <div>
+              <h3>Player detail</h3>
+              <p>Click a heading to sort, or select a row to inspect that season below.</p>
+            </div>
+            <label class="field search-field" for="player-table-search">
+              <span class="sr-only">Filter players or teams</span>
+              <span class="search-icon" aria-hidden="true"></span>
+              <input
+                id="player-table-search"
+                type="search"
+                placeholder="Filter players or teams"
+              />
+            </label>
+          </div>
+          <div class="table-scroll player-table-scroll">
+            <table id="player-table">
+              <caption class="sr-only">
+                Player scoring and handicap ranges for the selected venue and season
+              </caption>
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="table-note">
+            “Rounds played” includes X-marked rounds; “Scorable” and every gross or net
+            statistic use numeric scores only. Net scores use the cap applied for each
+            round. Cap ranges carry the last reported cap through a missing snapshot.
+          </p>
+        </div>
+      </section>
+
+      <section id="players" class="section section-tint">
+        <div class="page-shell">
+          <div class="section-heading">
+            <h2 id="player-stats-title">Player Stats - Jefferson - 2026</h2>
+            <p>
+              Compare gross and calculated net scoring, then follow every available
+              round through the season.
+            </p>
+          </div>
+
+          <div class="player-picker" aria-label="Player selection">
+            <label class="field" for="player-team">
+              <span>Team</span>
+              <select id="player-team"></select>
+            </label>
+            <span class="picker-arrow" aria-hidden="true">→</span>
+            <label class="field" for="player-select">
+              <span>Player</span>
+              <select id="player-select"></select>
+            </label>
+          </div>
+
+          <div class="player-overview">
+            <article class="player-profile">
+              <div>
+                <span class="player-kicker" id="player-team-name">—</span>
+                <h3 id="player-name">Choose a player</h3>
+              </div>
+              <div class="cap-badge">
+                <span>Current cap</span>
+                <strong id="player-cap">—</strong>
+              </div>
+              <div class="player-stat-grid">
+                <div><span>Rounds</span><strong id="player-rounds">—</strong></div>
+                <div><span>Avg gross</span><strong id="player-avg-gross">—</strong></div>
+                <div><span>Avg net</span><strong id="player-avg-net">—</strong></div>
+                <div><span>Best net</span><strong id="player-best-net">—</strong></div>
+              </div>
+              <p>
+                Net scores use the cap reported for each week. Missing snapshots use
+                the most recent earlier cap. X means the golfer played without a scorable
+                individual score.
+              </p>
+            </article>
+
+            <article class="chart-card player-chart-card">
+              <div class="mini-card-heading">
+                <div>
+                  <span class="mini-label">Scoring distribution</span>
+                  <h3>Where the rounds land</h3>
+                </div>
+                <div class="key" aria-label="Chart key">
+                  <span><i class="gross-key"></i>Gross</span>
+                  <span><i class="net-key"></i>Net</span>
+                </div>
+              </div>
+              <div id="distribution-chart" class="chart distribution-chart"></div>
+            </article>
+          </div>
+
+          <article class="chart-card cap-history-card">
+            <div class="mini-card-heading">
+              <div>
+                <span class="mini-label">Handicap history</span>
+                <h3>How the cap moved</h3>
+              </div>
+              <span id="cap-history-summary" class="rounds-summary">—</span>
+            </div>
+            <div id="cap-history-chart" class="chart cap-history-chart"></div>
+            <p class="cap-history-note">
+              Points are commissioner-reported weekly caps. The line carries the last
+              reported cap through weeks without a usable snapshot.
+            </p>
+          </article>
+
+          <article class="chart-card rounds-card">
+            <div class="mini-card-heading">
+              <div>
+                <span class="mini-label">Scores by round</span>
+                <h3>Week-to-week form</h3>
+              </div>
+              <span id="rounds-summary" class="rounds-summary">—</span>
+            </div>
+            <div id="rounds-chart" class="chart rounds-chart"></div>
+            <div class="table-scroll compact-table-scroll">
+              <table id="rounds-table" class="rounds-table">
+                <caption class="sr-only">Selected player’s scores by round</caption>
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="page-shell">
+        <div class="brand footer-brand">
+          <img
+            class="brand-logo"
+            src="pinky_logo.png"
+            alt=""
+            width="1024"
+            height="1024"
+            loading="lazy"
+          />
+          <span><strong>City League Stats</strong><small>Golf, unpacked.</small></span>
+        </div>
+        <p>(c) 2026 A Diamond Dick Dave Production.</p>
+      </div>
+    </footer>
+
+    <div id="chart-tooltip" class="chart-tooltip" role="tooltip" hidden></div>
+
+    <noscript>
+      <div class="noscript">JavaScript is required to explore player stats.</div>
+    </noscript>
+  </body>
+</html>

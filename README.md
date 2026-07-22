@@ -39,7 +39,9 @@ The importer also creates a `playerProfiles` index. A profile follows the same p
 
 ## Files
 
-- `index.html` — semantic page structure and controls
+- `index.html` — season standings and weekly movement
+- `player-stats.html` — venue-and-season player details and stats
+- `handicap-analysis.html` — Sandbag Rankings handicap analysis
 - `format-analytics.html` — cross-season format score targets
 - `css/styles.css` — responsive layout and visual system
 - `css/formats.css` — format analytics page styles

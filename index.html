@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Explore City League golf standings, weekly movement, player scoring, and handicap rankings."
+      content="Explore City League golf season standings and weekly movement."
     />
     <meta name="theme-color" content="#163d32" />
-    <title>City League Golf Stats</title>
+    <title>Season Standings | City League Golf Stats</title>
     <link rel="canonical" href="https://cityleaguestats.com/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="City League Golf Stats" />
     <meta property="og:title" content="City League Golf Stats" />
     <meta
       property="og:description"
-      content="Explore City League golf standings, weekly movement, player scoring, and handicap rankings."
+      content="Explore City League golf season standings and weekly movement."
     />
     <meta property="og:url" content="https://cityleaguestats.com/" />
     <meta property="og:image" content="https://cityleaguestats.com/social-card.png" />
@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="City League Golf Stats" />
     <meta
       name="twitter:description"
-      content="Explore City League golf standings, weekly movement, player scoring, and handicap rankings."
+      content="Explore City League golf season standings and weekly movement."
     />
     <meta name="twitter:image" content="https://cityleaguestats.com/social-card.png" />
     <meta
@@ -51,7 +51,7 @@
     <a class="skip-link" href="#main-content">Skip to stats</a>
 
     <header class="site-header">
-      <a class="brand" href="#main-content" aria-label="City League Stats home">
+      <a class="brand" href="index.html" aria-label="City League Stats home">
         <img
           class="brand-logo"
           src="pinky_logo.png"
@@ -66,10 +66,10 @@
       </a>
 
       <nav id="primary-navigation" class="primary-nav" aria-label="Primary navigation">
-        <a href="#standings">Standings</a>
-        <a href="#player-standings">Players</a>
-        <a href="#sandbag">Rankings</a>
-        <a href="format-analytics.html">Formats</a>
+        <a href="index.html" aria-current="page">Season Standings</a>
+        <a href="player-stats.html">Player Stats</a>
+        <a href="handicap-analysis.html">Handicap Analysis</a>
+        <a href="format-analytics.html">Format Analysis</a>
       </nav>
 
       <div class="header-tools">
@@ -112,7 +112,7 @@
       <section id="standings" class="section page-shell">
         <div class="section-heading split-heading">
           <div>
-            <h2>Standings</h2>
+            <h2 id="standings-title">Standings - Jefferson - 2026</h2>
             <p>
               Team scores are net. Player round scores are gross;
               net values below use each player’s handicap reported for that week.
@@ -158,7 +158,7 @@
         <div class="page-shell">
           <div class="section-heading split-heading">
             <div>
-              <h2>Standings Movement by Week</h2>
+              <h2 id="movement-title">Standings Movement by Week - Jefferson - 2026</h2>
               <p>
                 Each line tracks cumulative shots back from that week’s leader.
                 Zero is the top spot.
@@ -184,209 +184,6 @@
         </div>
       </section>
 
-      <section id="player-standings" class="section page-shell">
-        <div class="section-heading">
-          <h2>Player Details</h2>
-          <p>
-            Compare scoring and handicap ranges for every golfer who played a round.
-          </p>
-        </div>
-
-        <div class="table-card">
-          <div class="card-toolbar">
-            <div>
-              <h3>Player detail</h3>
-              <p>Click a heading to sort or a player to open their full stats.</p>
-            </div>
-            <label class="field search-field" for="player-table-search">
-              <span class="sr-only">Filter players or teams</span>
-              <span class="search-icon" aria-hidden="true"></span>
-              <input
-                id="player-table-search"
-                type="search"
-                placeholder="Filter players or teams"
-              />
-            </label>
-          </div>
-          <div class="table-scroll player-table-scroll">
-            <table id="player-table">
-              <caption class="sr-only">
-                Player scoring and handicap ranges for the selected season
-              </caption>
-              <thead></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <p class="table-note">
-            “Rounds played” includes X-marked rounds; “Scorable” and every gross or net
-            statistic use numeric scores only. Net scores use the cap applied for each
-            round. Cap ranges carry the last reported cap through a missing snapshot.
-          </p>
-        </div>
-      </section>
-
-      <section id="players" class="section page-shell">
-        <div class="section-heading">
-          <h2>Player Stats</h2>
-          <p>
-            Compare gross and calculated net scoring, then follow every available
-            round through the season.
-          </p>
-        </div>
-
-        <div class="player-picker" aria-label="Player selection">
-          <label class="field" for="player-team">
-            <span>Team</span>
-            <select id="player-team"></select>
-          </label>
-          <span class="picker-arrow" aria-hidden="true">→</span>
-          <label class="field" for="player-select">
-            <span>Player</span>
-            <select id="player-select"></select>
-          </label>
-        </div>
-
-        <div class="player-overview">
-          <article class="player-profile">
-            <div>
-              <span class="player-kicker" id="player-team-name">—</span>
-              <h3 id="player-name">Choose a player</h3>
-            </div>
-            <div class="cap-badge">
-              <span>Current cap</span>
-              <strong id="player-cap">—</strong>
-            </div>
-            <div class="player-stat-grid">
-              <div><span>Rounds</span><strong id="player-rounds">—</strong></div>
-              <div><span>Avg gross</span><strong id="player-avg-gross">—</strong></div>
-              <div><span>Avg net</span><strong id="player-avg-net">—</strong></div>
-              <div><span>Best net</span><strong id="player-best-net">—</strong></div>
-            </div>
-            <p>
-              Net scores use the cap reported for each week. Missing snapshots use
-              the most recent earlier cap. X means the golfer played without a scorable
-              individual score.
-            </p>
-          </article>
-
-          <article class="chart-card player-chart-card">
-            <div class="mini-card-heading">
-              <div>
-                <span class="mini-label">Scoring distribution</span>
-                <h3>Where the rounds land</h3>
-              </div>
-              <div class="key" aria-label="Chart key">
-                <span><i class="gross-key"></i>Gross</span>
-                <span><i class="net-key"></i>Net</span>
-              </div>
-            </div>
-            <div id="distribution-chart" class="chart distribution-chart"></div>
-          </article>
-        </div>
-
-        <article class="chart-card cap-history-card">
-          <div class="mini-card-heading">
-            <div>
-              <span class="mini-label">Handicap history</span>
-              <h3>How the cap moved</h3>
-            </div>
-            <span id="cap-history-summary" class="rounds-summary">—</span>
-          </div>
-          <div id="cap-history-chart" class="chart cap-history-chart"></div>
-          <p class="cap-history-note">
-            Points are commissioner-reported weekly caps. The line carries the last
-            reported cap through weeks without a usable snapshot.
-          </p>
-        </article>
-
-        <article class="chart-card rounds-card">
-          <div class="mini-card-heading">
-            <div>
-              <span class="mini-label">Scores by round</span>
-              <h3>Week-to-week form</h3>
-            </div>
-            <span id="rounds-summary" class="rounds-summary">—</span>
-          </div>
-          <div id="rounds-chart" class="chart rounds-chart"></div>
-          <div class="table-scroll compact-table-scroll">
-            <table id="rounds-table" class="rounds-table">
-              <caption class="sr-only">Selected player’s scores by round</caption>
-              <thead></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </article>
-      </section>
-
-      <section id="sandbag" class="section section-dark">
-        <div class="page-shell">
-          <div class="section-heading split-heading dark-heading">
-            <div>
-              <p class="eyebrow eyebrow-light">Handicap watch</p>
-              <h2>The Sandbag Rankings.</h2>
-              <p>
-                Compare calculated net scores with nine-hole par 36. Repeatedly
-                finishing under net par suggests a cap may be too high; repeatedly
-                finishing over par suggests it may be too low.
-              </p>
-            </div>
-            <div class="sandbag-controls">
-              <div class="segmented" role="group" aria-label="Rank players or teams">
-                <button class="active" type="button" data-ranking-mode="players" aria-pressed="true">
-                  Players
-                </button>
-                <button type="button" data-ranking-mode="teams" aria-pressed="false">
-                  Teams
-                </button>
-              </div>
-              <label class="field field-dark" for="ranking-rounds">
-                <span>Minimum rounds</span>
-                <select id="ranking-rounds">
-                  <option value="1">1+</option>
-                  <option value="2">2+</option>
-                  <option value="3" selected>3+</option>
-                  <option value="5">5+</option>
-                </select>
-              </label>
-              <label class="field field-dark" for="ranking-sort">
-                <span>Rank by</span>
-                <select id="ranking-sort">
-                  <option value="under">Most under net par</option>
-                  <option value="frequency">Under-par frequency</option>
-                  <option value="over">Most over net par</option>
-                </select>
-              </label>
-            </div>
-          </div>
-
-          <div class="ranking-layout">
-            <article class="ranking-chart-wrap">
-              <div class="ranking-key" aria-label="Ranking chart key">
-                <span><i class="under-par-key"></i>Cap may be high</span>
-                <span><i class="even-key"></i>Net par</span>
-                <span><i class="over-par-key"></i>Cap may be low</span>
-              </div>
-              <div id="ranking-chart" class="chart ranking-chart"></div>
-            </article>
-            <article class="ranking-list-card">
-              <div class="mini-card-heading">
-                <div>
-                  <span class="mini-label">Top 10</span>
-                  <h3 id="ranking-list-title">Most under net par</h3>
-                </div>
-              </div>
-              <ol id="ranking-list" class="ranking-list"></ol>
-            </article>
-          </div>
-
-          <p class="method-note">
-            Net score equals gross minus the cap reported for that week; the last
-            earlier cap carries through a missing snapshot. Exactly 36 is even par;
-            missing scores, X-marked rounds, or unavailable caps are excluded, and team
-            values combine scorable player rounds.
-          </p>
-        </div>
-      </section>
     </main>
 
     <footer class="site-footer">

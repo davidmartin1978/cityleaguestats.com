@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Analyze City League golf handicaps with the Sandbag Rankings."
+    />
+    <meta name="theme-color" content="#163d32" />
+    <title>Handicap Analysis | City League Golf Stats</title>
+    <link rel="canonical" href="https://cityleaguestats.com/handicap-analysis.html" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+    <script src="js/navigation.js" defer></script>
+    <script src="js/app.js" defer></script>
+  </head>
+  <body class="handicap-page">
+    <a class="skip-link" href="#main-content">Skip to handicap analysis</a>
+
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="City League Stats home">
+        <img
+          class="brand-logo"
+          src="pinky_logo.png"
+          alt=""
+          width="1024"
+          height="1024"
+        />
+        <span>
+          <strong>City League</strong>
+          <small>Golf stats</small>
+        </span>
+      </a>
+
+      <nav id="primary-navigation" class="primary-nav" aria-label="Primary navigation">
+        <a href="index.html">Season Standings</a>
+        <a href="player-stats.html">Player Stats</a>
+        <a href="handicap-analysis.html" aria-current="page">Handicap Analysis</a>
+        <a href="format-analytics.html">Format Analysis</a>
+      </nav>
+
+      <div class="header-tools">
+        <div class="global-search">
+          <label class="sr-only" for="global-search">Search teams or players</label>
+          <span aria-hidden="true" class="search-icon"></span>
+          <input
+            id="global-search"
+            type="search"
+            placeholder="Find team or player"
+            autocomplete="off"
+            aria-expanded="false"
+            aria-controls="search-results"
+          />
+          <div id="search-results" class="search-results" role="listbox" hidden></div>
+        </div>
+        <label class="season-control" for="season-select">
+          <span>Season</span>
+          <select id="season-select" aria-label="Select season"></select>
+        </label>
+      </div>
+      <button
+        class="mobile-nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-navigation"
+        aria-label="Open navigation"
+      >
+        <span class="mobile-nav-icon" aria-hidden="true"></span>
+        <span class="sr-only mobile-nav-label">Open navigation</span>
+      </button>
+    </header>
+
+    <main id="main-content">
+      <div id="load-error" class="load-error page-shell" role="alert" hidden>
+        <strong>Couldn’t load the scorecard.</strong>
+        <span>Serve this folder with a small local web server and refresh.</span>
+      </div>
+
+      <section id="sandbag" class="section section-dark">
+        <div class="page-shell">
+          <div class="section-heading split-heading dark-heading">
+            <div>
+              <p class="eyebrow eyebrow-light">Handicap watch</p>
+              <h2>The Sandbag Rankings.</h2>
+              <p>
+                Compare calculated net scores with nine-hole par 36. Repeatedly
+                finishing under net par suggests a cap may be too high; repeatedly
+                finishing over par suggests it may be too low.
+              </p>
+            </div>
+            <div class="sandbag-controls">
+              <div class="segmented" role="group" aria-label="Rank players or teams">
+                <button class="active" type="button" data-ranking-mode="players" aria-pressed="true">
+                  Players
+                </button>
+                <button type="button" data-ranking-mode="teams" aria-pressed="false">
+                  Teams
+                </button>
+              </div>
+              <label class="field field-dark" for="ranking-rounds">
+                <span>Minimum rounds</span>
+                <select id="ranking-rounds">
+                  <option value="1">1+</option>
+                  <option value="2">2+</option>
+                  <option value="3" selected>3+</option>
+                  <option value="5">5+</option>
+                </select>
+              </label>
+              <label class="field field-dark" for="ranking-sort">
+                <span>Rank by</span>
+                <select id="ranking-sort">
+                  <option value="under">Most under net par</option>
+                  <option value="frequency">Under-par frequency</option>
+                  <option value="over">Most over net par</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="ranking-layout">
+            <article class="ranking-chart-wrap">
+              <div class="ranking-key" aria-label="Ranking chart key">
+                <span><i class="under-par-key"></i>Cap may be high</span>
+                <span><i class="even-key"></i>Net par</span>
+                <span><i class="over-par-key"></i>Cap may be low</span>
+              </div>
+              <div id="ranking-chart" class="chart ranking-chart"></div>
+            </article>
+            <article class="ranking-list-card">
+              <div class="mini-card-heading">
+                <div>
+                  <span class="mini-label">Top 10</span>
+                  <h3 id="ranking-list-title">Most under net par</h3>
+                </div>
+              </div>
+              <ol id="ranking-list" class="ranking-list"></ol>
+            </article>
+          </div>
+
+          <p class="method-note">
+            Net score equals gross minus the cap reported for that week; the last
+            earlier cap carries through a missing snapshot. Exactly 36 is even par;
+            missing scores, X-marked rounds, or unavailable caps are excluded, and team
+            values combine scorable player rounds.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="page-shell">
+        <div class="brand footer-brand">
+          <img
+            class="brand-logo"
+            src="pinky_logo.png"
+            alt=""
+            width="1024"
+            height="1024"
+            loading="lazy"
+          />
+          <span><strong>City League Stats</strong><small>Golf, unpacked.</small></span>
+        </div>
+        <p>(c) 2026 A Diamond Dick Dave Production.</p>
+      </div>
+    </footer>
+
+    <div id="chart-tooltip" class="chart-tooltip" role="tooltip" hidden></div>
+
+    <noscript>
+      <div class="noscript">JavaScript is required to calculate handicap rankings.</div>
+    </noscript>
+  </body>
+</html>

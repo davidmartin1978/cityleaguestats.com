@@ -35,6 +35,8 @@
     movementFocusId: null,
     rankingMode: "players",
     searchIndex: [],
+    requestedTeamId: null,
+    requestedPlayerId: null,
   };
 
   const elements = {};
@@ -56,8 +58,11 @@
       if (!state.store?.seasons?.length) {
         throw new Error("No seasons were found in data/seasons.json");
       }
+      const params = new URLSearchParams(window.location.search);
+      state.requestedTeamId = params.get("team");
+      state.requestedPlayerId = params.get("player");
       populateSeasonSelect();
-      setSeason(state.store.seasons[0].id);
+      setSeason(params.get("season") || state.store.seasons[0].id);
       observeChartSizes();
     } catch (error) {
       console.error(error);
@@ -72,6 +77,10 @@
       "search-results",
       "load-error",
       "standings-updated",
+      "standings-title",
+      "movement-title",
+      "player-details-title",
+      "player-stats-title",
       "standings-table",
       "team-table-search",
       "player-table",
@@ -109,30 +118,34 @@
   }
 
   function bindStaticEvents() {
-    elements.seasonSelect.addEventListener("change", (event) => setSeason(event.target.value));
+    elements.seasonSelect?.addEventListener("change", (event) => {
+      state.requestedTeamId = null;
+      state.requestedPlayerId = null;
+      setSeason(event.target.value);
+    });
 
-    elements.teamTableSearch.addEventListener("input", (event) => {
+    elements.teamTableSearch?.addEventListener("input", (event) => {
       state.teamFilter = event.target.value.trim().toLocaleLowerCase();
       renderStandingsBody();
     });
 
-    elements.playerTableSearch.addEventListener("input", (event) => {
+    elements.playerTableSearch?.addEventListener("input", (event) => {
       state.playerTableFilter = event.target.value.trim().toLocaleLowerCase();
       renderPlayerTableBody();
     });
 
-    elements.movementTeam.addEventListener("change", (event) => {
+    elements.movementTeam?.addEventListener("change", (event) => {
       state.movementFocusId = event.target.value;
       renderMovement();
     });
 
-    elements.movementAll.addEventListener("change", renderMovement);
+    elements.movementAll?.addEventListener("change", renderMovement);
 
-    elements.playerTeam.addEventListener("change", (event) => {
+    elements.playerTeam?.addEventListener("change", (event) => {
       selectTeam(event.target.value, false, true);
     });
 
-    elements.playerSelect.addEventListener("change", (event) => {
+    elements.playerSelect?.addEventListener("change", (event) => {
       state.selectedPlayerId = event.target.value;
       renderPlayer();
       renderPlayerTableBody();
@@ -150,16 +163,16 @@
       });
     });
 
-    elements.rankingRounds.addEventListener("change", renderRankings);
-    elements.rankingSort.addEventListener("change", renderRankings);
+    elements.rankingRounds?.addEventListener("change", renderRankings);
+    elements.rankingSort?.addEventListener("change", renderRankings);
 
-    elements.globalSearch.addEventListener("input", renderSearchResults);
-    elements.globalSearch.addEventListener("focus", renderSearchResults);
-    elements.globalSearch.addEventListener("keydown", (event) => {
+    elements.globalSearch?.addEventListener("input", renderSearchResults);
+    elements.globalSearch?.addEventListener("focus", renderSearchResults);
+    elements.globalSearch?.addEventListener("keydown", (event) => {
       if (event.key === "Escape") closeSearch();
     });
     document.addEventListener("click", (event) => {
-      if (!event.target.closest(".global-search")) closeSearch();
+      if (elements.globalSearch && !event.target.closest(".global-search")) closeSearch();
     });
   }
 
@@ -173,28 +186,34 @@
     state.season = state.store.seasons.find((item) => item.id === seasonId) || state.store.seasons[0];
     elements.seasonSelect.value = state.season.id;
     state.teamFilter = "";
-    elements.teamTableSearch.value = "";
+    if (elements.teamTableSearch) elements.teamTableSearch.value = "";
     state.standingsSort = { key: "placeValue", direction: "asc" };
     state.standingRows = buildStandingRows();
     state.playerTableFilter = "";
-    elements.playerTableSearch.value = "";
+    if (elements.playerTableSearch) elements.playerTableSearch.value = "";
     state.playerTableSort = { key: "averageNet", direction: "asc" };
     state.playerRows = buildPlayerRows();
 
     const leader = [...state.season.teams].sort(comparePlace)[0];
-    state.selectedTeamId = leader.id;
-    state.movementFocusId = leader.id;
-    state.selectedPlayerId = bestDefaultPlayer(leader)?.id || leader.players[0]?.id || null;
+    const requestedTeam = state.season.teams.find((team) => team.id === state.requestedTeamId);
+    const selectedTeam = requestedTeam || leader;
+    const requestedPlayer = selectedTeam?.players.find((player) => player.id === state.requestedPlayerId);
+    state.selectedTeamId = selectedTeam.id;
+    state.movementFocusId = selectedTeam.id;
+    state.selectedPlayerId =
+      requestedPlayer?.id || bestDefaultPlayer(selectedTeam)?.id || selectedTeam.players[0]?.id || null;
+    state.requestedTeamId = null;
+    state.requestedPlayerId = null;
     state.searchIndex = buildSearchIndex();
 
     populateTeamControls();
     populatePlayerSelect();
     renderSeasonMeta();
-    renderStandings();
-    renderMovement();
-    renderPlayerTable();
-    renderPlayer();
-    renderRankings();
+    if (elements.standingsTable) renderStandings();
+    if (elements.movementChart) renderMovement();
+    if (elements.playerTable) renderPlayerTable();
+    if (elements.distributionChart) renderPlayer();
+    if (elements.rankingChart) renderRankings();
   }
 
   function buildStandingRows() {
@@ -269,7 +288,20 @@
   }
 
   function renderSeasonMeta() {
-    elements.standingsUpdated.textContent = `Updated ${formatDate(state.season.asOf)}`;
+    const scope = `${state.season.league} - ${state.season.year}`;
+    if (elements.standingsUpdated) {
+      elements.standingsUpdated.textContent = `Updated ${formatDate(state.season.asOf)}`;
+    }
+    if (elements.standingsTitle) elements.standingsTitle.textContent = `Standings - ${scope}`;
+    if (elements.movementTitle) {
+      elements.movementTitle.textContent = `Standings Movement by Week - ${scope}`;
+    }
+    if (elements.playerDetailsTitle) {
+      elements.playerDetailsTitle.textContent = `Player Details - ${scope}`;
+    }
+    if (elements.playerStatsTitle) {
+      elements.playerStatsTitle.textContent = `Player Stats - ${scope}`;
+    }
   }
 
   function renderStandings() {
@@ -442,11 +474,11 @@
       row.dataset.playerId = data.id;
       row.classList.toggle("selected", data.id === state.selectedPlayerId);
       row.setAttribute("aria-label", `${data.displayName}. Open player stats.`);
-      row.addEventListener("click", () => openPlayerFromSearch(data.teamId, data.id));
+      row.addEventListener("click", () => openPlayer(data.teamId, data.id));
       row.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          openPlayerFromSearch(data.teamId, data.id);
+          openPlayer(data.teamId, data.id);
         }
       });
 
@@ -515,15 +547,20 @@
 
   function populateTeamControls() {
     const teams = [...state.season.teams].sort(comparePlace);
-    elements.movementTeam.replaceChildren(
-      ...teams.map((team) => new Option(`${formatPlace(team.place)} · ${team.name}`, team.id))
-    );
-    elements.playerTeam.replaceChildren(...teams.map((team) => new Option(team.name, team.id)));
-    elements.movementTeam.value = state.movementFocusId;
-    elements.playerTeam.value = state.selectedTeamId;
+    if (elements.movementTeam) {
+      elements.movementTeam.replaceChildren(
+        ...teams.map((team) => new Option(`${formatPlace(team.place)} · ${team.name}`, team.id))
+      );
+      elements.movementTeam.value = state.movementFocusId;
+    }
+    if (elements.playerTeam) {
+      elements.playerTeam.replaceChildren(...teams.map((team) => new Option(team.name, team.id)));
+      elements.playerTeam.value = state.selectedTeamId;
+    }
   }
 
   function populatePlayerSelect() {
+    if (!elements.playerSelect) return;
     const team = selectedTeam();
     if (!team) return;
     const players = [...team.players].sort((a, b) => {
@@ -549,20 +586,24 @@
   function selectTeam(teamId, scrollToPlayers, chooseDefaultPlayer) {
     const team = state.season.teams.find((item) => item.id === teamId);
     if (!team) return;
+    if (scrollToPlayers && !elements.playerTeam) {
+      window.location.href = playerStatsUrl(teamId);
+      return;
+    }
     state.selectedTeamId = team.id;
     state.movementFocusId = team.id;
     if (chooseDefaultPlayer) {
       state.selectedPlayerId = bestDefaultPlayer(team)?.id || team.players[0]?.id || null;
     }
-    elements.playerTeam.value = team.id;
-    elements.movementTeam.value = team.id;
+    if (elements.playerTeam) elements.playerTeam.value = team.id;
+    if (elements.movementTeam) elements.movementTeam.value = team.id;
     populatePlayerSelect();
-    renderPlayer();
-    renderMovement();
-    renderStandingsBody();
-    renderPlayerTableBody();
+    if (elements.distributionChart) renderPlayer();
+    if (elements.movementChart) renderMovement();
+    if (elements.standingsTable) renderStandingsBody();
+    if (elements.playerTable) renderPlayerTableBody();
     if (scrollToPlayers) {
-      document.getElementById("players").scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("players")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
 
@@ -1446,6 +1487,7 @@
   }
 
   function closeSearch() {
+    if (!elements.searchResults || !elements.globalSearch) return;
     elements.searchResults.hidden = true;
     elements.globalSearch.setAttribute("aria-expanded", "false");
   }
@@ -1453,18 +1495,28 @@
   function openPlayer(teamId, playerId) {
     const team = state.season.teams.find((item) => item.id === teamId);
     if (!team || !team.players.some((player) => player.id === playerId)) return;
+    if (!elements.playerTeam) {
+      window.location.href = playerStatsUrl(teamId, playerId);
+      return;
+    }
     state.selectedTeamId = teamId;
     state.movementFocusId = teamId;
     state.selectedPlayerId = playerId;
     elements.playerTeam.value = teamId;
-    elements.movementTeam.value = teamId;
+    if (elements.movementTeam) elements.movementTeam.value = teamId;
     populatePlayerSelect();
     elements.playerSelect.value = playerId;
     renderPlayer();
-    renderMovement();
-    renderStandingsBody();
-    renderPlayerTableBody();
-    document.getElementById("players").scrollIntoView({ behavior: "smooth", block: "start" });
+    if (elements.movementChart) renderMovement();
+    if (elements.standingsTable) renderStandingsBody();
+    if (elements.playerTable) renderPlayerTableBody();
+    document.getElementById("players")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function playerStatsUrl(teamId, playerId) {
+    const params = new URLSearchParams({ season: state.season.id, team: teamId });
+    if (playerId) params.set("player", playerId);
+    return `player-stats.html?${params.toString()}#players`;
   }
 
   function playerHandicapHistory(player) {
@@ -1681,13 +1733,14 @@
   }
 
   function showTooltip(event, html) {
+    if (!elements.chartTooltip) return;
     elements.chartTooltip.innerHTML = html;
     elements.chartTooltip.hidden = false;
     moveTooltip(event);
   }
 
   function moveTooltip(event) {
-    if (elements.chartTooltip.hidden) return;
+    if (!elements.chartTooltip || elements.chartTooltip.hidden) return;
     const gap = 14;
     const rect = elements.chartTooltip.getBoundingClientRect();
     let left = event.clientX + gap;
@@ -1699,10 +1752,11 @@
   }
 
   function hideTooltip() {
-    elements.chartTooltip.hidden = true;
+    if (elements.chartTooltip) elements.chartTooltip.hidden = true;
   }
 
   function showLoadError(message) {
+    if (!elements.loadError) return;
     elements.loadError.hidden = false;
     const detail = elements.loadError.querySelector("span");
     if (detail) detail.textContent = message;
@@ -1720,16 +1774,16 @@
       elements.capHistoryChart,
       elements.roundsChart,
       elements.rankingChart,
-    ].forEach((element) => observer.observe(element));
+    ].filter(Boolean).forEach((element) => observer.observe(element));
   }
 
   function scheduleChartRender() {
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(() => {
       if (!state.season) return;
-      renderMovement();
-      renderPlayer();
-      renderRankings();
+      if (elements.movementChart) renderMovement();
+      if (elements.distributionChart) renderPlayer();
+      if (elements.rankingChart) renderRankings();
     }, 120);
   }
 })();
