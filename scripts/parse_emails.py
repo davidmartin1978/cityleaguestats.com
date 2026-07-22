@@ -99,6 +99,54 @@ def slugify(value: str) -> str:
     return value.strip("-") or "item"
 
 
+def load_team_name_history(path: Path) -> list[dict[str, Any]]:
+    """Load the small, manually maintained team rename registry."""
+
+    if not path.exists():
+        return []
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    records = payload.get("teams", []) if isinstance(payload, dict) else []
+    history: list[dict[str, Any]] = []
+    claimed_names: set[tuple[str, str]] = set()
+    for index, record in enumerate(records, start=1):
+        if not isinstance(record, dict):
+            raise ValueError(f"Team name history entry {index} must be an object")
+        league = str(record.get("league", "")).strip()
+        names = record.get("names")
+        if not isinstance(names, list) or not names:
+            raise ValueError(
+                f"Team name history entry {index} needs a non-empty names list"
+            )
+        cleaned_names = [str(name).strip() for name in names if str(name).strip()]
+        if len(cleaned_names) != len(names):
+            raise ValueError(f"Team name history entry {index} contains an empty name")
+        for name in cleaned_names:
+            key = (league.casefold(), slugify(name))
+            if key in claimed_names:
+                raise ValueError(
+                    f"Team name history lists {name!r} more than once for {league or 'all leagues'}"
+                )
+            claimed_names.add(key)
+        history.append({"league": league, "names": cleaned_names})
+    return history
+
+
+def find_team_name_history(
+    team_name: str, league: str, history: list[dict[str, Any]]
+) -> dict[str, Any] | None:
+    team_key = slugify(team_name)
+    league_key = league.casefold()
+    return next(
+        (
+            record
+            for record in history
+            if (not record["league"] or record["league"].casefold() == league_key)
+            and any(slugify(name) == team_key for name in record["names"])
+        ),
+        None,
+    )
+
+
 def as_number(value: str) -> int | None:
     match = re.search(r"\d+", value)
     return int(match.group()) if match else None
@@ -644,22 +692,40 @@ def attach_score_consistency(
     }
 
 
-def build_player_profiles(seasons: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def build_player_profiles(
+    seasons: list[dict[str, Any]], team_name_history: list[dict[str, Any]] | None = None
+) -> list[dict[str, Any]]:
+    team_name_history = team_name_history or []
     profiles: dict[str, dict[str, Any]] = {}
     for season in seasons:
         for team in season["teams"]:
+            name_history = find_team_name_history(
+                team["name"], season["league"], team_name_history
+            )
+            team_names = name_history["names"] if name_history else [team["name"]]
+            current_team_name = team_names[0]
+            team_display_name = " / ".join(team_names)
             for player in team["players"]:
-                profile_id = player["id"]
+                if name_history and player["id"].startswith(f"{team['id']}-"):
+                    player_suffix = player["id"][len(team["id"]) :]
+                    profile_id = f"{slugify(current_team_name)}{player_suffix}"
+                else:
+                    profile_id = player["id"]
                 player["profileId"] = profile_id
                 profile = profiles.setdefault(
                     profile_id,
                     {
                         "id": profile_id,
                         "name": player["name"],
-                        "latestTeam": team["name"],
+                        "latestTeam": current_team_name,
+                        "teamDisplayName": team_display_name,
                         "appearances": [],
                     },
                 )
+                if profile_id != player["id"]:
+                    legacy_ids = profile.setdefault("legacyIds", [])
+                    if player["id"] not in legacy_ids:
+                        legacy_ids.append(player["id"])
                 profile["appearances"].append(
                     {
                         "seasonId": season["id"],
@@ -676,7 +742,10 @@ def build_player_profiles(seasons: list[dict[str, Any]]) -> list[dict[str, Any]]
     )
 
 
-def build_store(email_folder: Path) -> dict[str, Any]:
+def build_store(
+    email_folder: Path, team_name_history: list[dict[str, Any]] | None = None
+) -> dict[str, Any]:
+    team_name_history = team_name_history or []
     latest: dict[str, ParsedEmail] = {}
     snapshots: dict[str, list[ParsedEmail]] = {}
     failures: list[str] = []
@@ -710,10 +779,11 @@ def build_store(email_folder: Path) -> dict[str, Any]:
         attach_score_consistency(item.season, snapshots[season_id])
         seasons.append(item.season)
     seasons.sort(key=lambda season: (season["year"], season["league"]), reverse=True)
-    player_profiles = build_player_profiles(seasons)
+    player_profiles = build_player_profiles(seasons, team_name_history)
     return {
-        "schemaVersion": 4,
+        "schemaVersion": 5,
         "generatedFrom": "emails/*.eml",
+        "teamNameHistory": team_name_history,
         "seasons": seasons,
         "playerProfiles": player_profiles,
         "importWarnings": failures,
@@ -724,11 +794,17 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--emails", type=Path, default=Path("emails"))
     parser.add_argument("--output", type=Path, default=Path("data/seasons.json"))
+    parser.add_argument(
+        "--team-name-history",
+        type=Path,
+        default=Path("data/team-name-history.json"),
+    )
     args = parser.parse_args()
 
     try:
-        store = build_store(args.emails)
-    except ValueError as error:
+        team_name_history = load_team_name_history(args.team_name_history)
+        store = build_store(args.emails, team_name_history)
+    except (OSError, json.JSONDecodeError, ValueError) as error:
         print(f"Import failed: {error}", file=sys.stderr)
         return 1
 

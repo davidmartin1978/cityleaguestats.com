@@ -15,19 +15,22 @@ Then open `http://localhost:8000`. The deployed site needs only the repository's
 ## Refresh data from emails
 
 1. Add commissioner `.eml` files to `emails/`.
-2. Generate the JSON store:
+2. If a team changed names, add its names to `data/team-name-history.json`, newest
+   first. The site displays that history with slashes, such as
+   `What's a Foursome? / ZJ's`.
+3. Generate the JSON store:
 
    ```powershell
    python scripts/parse_emails.py
    ```
 
-3. Regenerate the static player profile pages:
+4. Regenerate the static player profile pages:
 
    ```powershell
    python scripts/generate_player_pages.py
    ```
 
-4. Review the validation summary and commit `data/seasons.json` and `players/`.
+5. Review the validation summary and commit `data/seasons.json` and `players/`.
 
 For each season, the importer uses the highest-week email as the authoritative standings and individual-score table. Earlier emails never overwrite those scores; they supply commissioner handicaps and score-consistency checks only. The importer accepts HTML tables, tab-delimited plain text, quoted replies, and common Apple Mail wrapping differences. The season's `handicapWeeks` array records each usable snapshot. When a weekly snapshot or player cap is missing, the most recent earlier handicap carries forward; a player with no earlier cap has no calculated net for that round.
 
@@ -35,7 +38,7 @@ Team scores are treated as net. Numeric player scores are treated as gross, and 
 
 The separate `format-analytics.html` page derives team-net benchmarks directly in the browser. For each format, it presents the best-quartile cutoff as a good day, the median as typical, and the worst-quartile cutoff as a setback. No server-side data processing is required on GitHub Pages.
 
-The importer also creates a `playerProfiles` index. A profile follows the same player name on the same team across seasons, which is the safest available identity in the source emails. A name on a different team remains a separate profile because the emails do not provide a unique league-wide player ID. The generator turns that index into shareable pages under `players/`; edit `templates/player-page.html`, `css/player.css`, or `js/player.js`, then rerun the generator when the roster changes.
+The importer also creates a `playerProfiles` index. A profile follows the same player name on the same team identity across seasons, including team names connected in `data/team-name-history.json`. A name on an unrelated team remains a separate profile because the emails do not provide a unique league-wide player ID. The generator turns that index into shareable pages under `players/` and keeps redirect pages for profile URLs based on prior team names. Edit `templates/player-page.html`, `css/player.css`, or `js/player.js`, then rerun the generator when the roster changes.
 
 ## Files
 
@@ -51,6 +54,7 @@ The importer also creates a `playerProfiles` index. A profile follows the same p
 - `js/navigation.js` — shared responsive navigation behavior
 - `js/player.js` — career summaries, game logs, and player charts
 - `data/seasons.json` — static browser data store
+- `data/team-name-history.json` — small newest-to-oldest registry of team renames
 - `scripts/parse_emails.py` — offline `.eml` table importer
 - `scripts/generate_player_pages.py` — static player page generator
 - `templates/player-page.html` — generated profile page template

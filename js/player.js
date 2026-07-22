@@ -181,9 +181,10 @@
 
     const uniqueTeams = [];
     for (const entry of state.seasons) {
-      const key = `${entry.teamName}|${entry.league}`;
+      const displayName = state.profile.teamDisplayName || entry.teamName;
+      const key = `${displayName}|${entry.league}`;
       if (!uniqueTeams.some((team) => team.key === key)) {
-        uniqueTeams.push({ key, name: entry.teamName, league: entry.league });
+        uniqueTeams.push({ key, name: displayName, league: entry.league });
       }
     }
 
@@ -204,7 +205,8 @@
     const seasonWord = state.seasons.length === 1 ? "season" : "seasons";
     const roundCount = state.records.filter((record) => record.played).length;
     const roundWord = roundCount === 1 ? "round played" : "rounds played";
-    elements.profileSummary.textContent = `${state.seasons.length} ${seasonWord} (${range}) · ${roundCount} ${roundWord} · Latest team: ${state.profile.latestTeam}`;
+    const teamName = state.profile.teamDisplayName || state.profile.latestTeam;
+    elements.profileSummary.textContent = `${state.seasons.length} ${seasonWord} (${range}) · ${roundCount} ${roundWord} · Team: ${teamName}`;
   }
 
   function renderCareerStats() {

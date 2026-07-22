@@ -50,6 +50,26 @@ def player_index() -> str:
 """
 
 
+def profile_redirect(profile: dict[str, object]) -> str:
+    profile_id = html.escape(str(profile["id"]), quote=True)
+    player_name = html.escape(str(profile["name"]))
+    return f"""{GENERATED_MARKER}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content="0; url={profile_id}.html" />
+    <link rel="canonical" href="https://cityleaguestats.com/players/{profile_id}.html" />
+    <title>{player_name} Golf Stats | City League</title>
+  </head>
+  <body>
+    <p><a href="{profile_id}.html">View {player_name}’s current player profile</a></p>
+  </body>
+</html>
+"""
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("data/seasons.json"))
@@ -67,6 +87,14 @@ def main() -> int:
 
     args.output.mkdir(parents=True, exist_ok=True)
     expected = {f"{profile['id']}.html" for profile in profiles}
+    legacy_redirects: dict[str, dict[str, object]] = {}
+    for profile in profiles:
+        for legacy_id in profile.get("legacyIds", []):
+            legacy_name = f"{legacy_id}.html"
+            if legacy_name in expected or legacy_name in legacy_redirects:
+                raise SystemExit(f"Duplicate legacy player profile ID: {legacy_id}")
+            legacy_redirects[legacy_name] = profile
+    expected.update(legacy_redirects)
     expected.add("index.html")
 
     for existing in args.output.glob("*.html"):
@@ -78,6 +106,11 @@ def main() -> int:
     for profile in profiles:
         target = args.output / f"{profile['id']}.html"
         target.write_text(render_profile(template, profile), encoding="utf-8")
+
+    for legacy_name, profile in legacy_redirects.items():
+        (args.output / legacy_name).write_text(
+            profile_redirect(profile), encoding="utf-8"
+        )
 
     (args.output / "index.html").write_text(player_index(), encoding="utf-8")
     print(f"Generated {len(profiles)} player pages in {args.output}")
