@@ -34,7 +34,6 @@
     selectedPlayerId: null,
     movementFocusId: null,
     rankingMode: "players",
-    searchIndex: [],
     requestedTeamId: null,
     requestedPlayerId: null,
   };
@@ -55,6 +54,7 @@
 
     try {
       state.store = await d3.json("data/seasons.json");
+      window.cityLeagueStore = state.store;
       if (!state.store?.seasons?.length) {
         throw new Error("No seasons were found in data/seasons.json");
       }
@@ -73,8 +73,6 @@
   function cacheElements() {
     const ids = [
       "season-select",
-      "global-search",
-      "search-results",
       "load-error",
       "standings-updated",
       "standings-title",
@@ -166,14 +164,6 @@
     elements.rankingRounds?.addEventListener("change", renderRankings);
     elements.rankingSort?.addEventListener("change", renderRankings);
 
-    elements.globalSearch?.addEventListener("input", renderSearchResults);
-    elements.globalSearch?.addEventListener("focus", renderSearchResults);
-    elements.globalSearch?.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeSearch();
-    });
-    document.addEventListener("click", (event) => {
-      if (elements.globalSearch && !event.target.closest(".global-search")) closeSearch();
-    });
   }
 
   function populateSeasonSelect() {
@@ -204,8 +194,6 @@
       requestedPlayer?.id || bestDefaultPlayer(selectedTeam)?.id || selectedTeam.players[0]?.id || null;
     state.requestedTeamId = null;
     state.requestedPlayerId = null;
-    state.searchIndex = buildSearchIndex();
-
     populateTeamControls();
     populatePlayerSelect();
     renderSeasonMeta();
@@ -1417,79 +1405,6 @@
     if (averageToPar < -0.25) return "#d6ef73";
     if (averageToPar > 0.25) return "#f0835c";
     return "#aeb8b2";
-  }
-
-  function buildSearchIndex() {
-    const teams = state.season.teams.map((team) => ({
-      type: "Team",
-      id: team.id,
-      teamId: team.id,
-      name: team.name,
-      subline: `${formatPlace(team.place)} place · ${team.total} total`,
-      search: team.name.toLocaleLowerCase(),
-    }));
-    const players = state.season.teams.flatMap((team) =>
-      team.players.map((player) => ({
-        type: "Player",
-        id: player.id,
-        teamId: team.id,
-        name: player.name,
-        subline: `${team.name} · cap ${player.handicap ?? "—"}`,
-        search: `${player.name} ${team.name}`.toLocaleLowerCase(),
-      }))
-    );
-    return teams.concat(players);
-  }
-
-  function renderSearchResults() {
-    if (!state.season) return;
-    const query = elements.globalSearch.value.trim().toLocaleLowerCase();
-    if (!query) {
-      closeSearch();
-      return;
-    }
-
-    const results = state.searchIndex
-      .filter((item) => item.search.includes(query))
-      .sort((a, b) => {
-        const aStarts = a.search.startsWith(query) ? 0 : 1;
-        const bStarts = b.search.startsWith(query) ? 0 : 1;
-        return aStarts - bStarts || a.name.localeCompare(b.name);
-      })
-      .slice(0, 9);
-    const fragment = document.createDocumentFragment();
-
-    for (const result of results) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "search-result";
-      button.setAttribute("role", "option");
-      button.innerHTML = `<span><strong>${escapeHtml(result.name)}</strong><small>${escapeHtml(result.subline)}</small></span><span class="search-result-type">${result.type}</span>`;
-      button.addEventListener("click", () => {
-        if (result.type === "Player") openPlayer(result.teamId, result.id);
-        else selectTeam(result.teamId, true, true);
-        elements.globalSearch.value = "";
-        closeSearch();
-      });
-      fragment.append(button);
-    }
-
-    if (!results.length) {
-      const empty = document.createElement("div");
-      empty.className = "search-empty";
-      empty.textContent = "No teams or players found.";
-      fragment.append(empty);
-    }
-
-    elements.searchResults.replaceChildren(fragment);
-    elements.searchResults.hidden = false;
-    elements.globalSearch.setAttribute("aria-expanded", "true");
-  }
-
-  function closeSearch() {
-    if (!elements.searchResults || !elements.globalSearch) return;
-    elements.searchResults.hidden = true;
-    elements.globalSearch.setAttribute("aria-expanded", "false");
   }
 
   function openPlayer(teamId, playerId) {

@@ -1,31 +1,3 @@
-.profile-site-header {
-  grid-template-columns: auto 1fr auto;
-}
-
-.profile-home-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 38px;
-  padding: 0 16px;
-  color: var(--forest);
-  background: var(--lime);
-  border: 1px solid rgba(22, 61, 50, 0.14);
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 900;
-  text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  transition: background 150ms ease, transform 150ms ease;
-}
-
-.profile-home-link:hover,
-.profile-home-link:focus-visible {
-  background: var(--lime-2);
-  transform: translateY(-1px);
-}
-
 .profile-masthead {
   position: relative;
   overflow: hidden;
@@ -351,25 +323,6 @@
 }
 
 @media (max-width: 620px) {
-  .profile-site-header {
-    grid-template-columns: auto 1fr auto;
-  }
-
-  .profile-site-header .brand small {
-    display: none;
-  }
-
-  .profile-site-header .brand-logo {
-    width: 56px;
-    height: 56px;
-  }
-
-  .profile-home-link {
-    min-height: 34px;
-    padding-inline: 12px;
-    font-size: 9px;
-  }
-
   .profile-masthead {
     padding: 42px 0 72px;
   }

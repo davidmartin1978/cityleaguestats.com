@@ -86,10 +86,6 @@
           />
           <div id="search-results" class="search-results" role="listbox" hidden></div>
         </div>
-        <label class="season-control" for="season-select">
-          <span>Season</span>
-          <select id="season-select" aria-label="Select season"></select>
-        </label>
       </div>
       <button
         class="mobile-nav-toggle"
@@ -119,9 +115,15 @@
               When a weekly snapshot is missing, the last reported cap carries forward.
             </p>
           </div>
-          <div class="section-meta">
-            <span class="live-dot" aria-hidden="true"></span>
-            <span id="standings-updated">Updated —</span>
+          <div class="heading-tools">
+            <label class="field page-season-control" for="season-select">
+              <span>Season</span>
+              <select id="season-select" aria-label="Select season"></select>
+            </label>
+            <div class="section-meta">
+              <span class="live-dot" aria-hidden="true"></span>
+              <span id="standings-updated">Updated —</span>
+            </div>
           </div>
         </div>
 

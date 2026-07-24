@@ -37,7 +37,7 @@
   <body data-profile-id="cherry-truck-bombers-kevin">
     <a class="skip-link" href="#main-content">Skip to player stats</a>
 
-    <header class="site-header profile-site-header">
+    <header class="site-header">
       <a class="brand" href="../index.html" aria-label="City League Stats home">
         <img
           class="brand-logo"
@@ -48,18 +48,32 @@
         />
         <span>
           <strong>City League</strong>
-          <small>Player reference</small>
+          <small>Golf stats</small>
         </span>
       </a>
 
-      <nav id="primary-navigation" class="primary-nav" aria-label="Player page navigation">
+      <nav id="primary-navigation" class="primary-nav" aria-label="Primary navigation">
         <a href="../index.html">Season Standings</a>
         <a href="../player-stats.html" aria-current="page">Player Stats</a>
         <a href="../handicap-analysis.html">Handicap Analysis</a>
         <a href="../format-analytics.html">Format Analysis</a>
       </nav>
 
-      <a class="profile-home-link" href="../player-stats.html#player-standings">All players</a>
+      <div class="header-tools">
+        <div class="global-search">
+          <label class="sr-only" for="global-search">Search teams or players</label>
+          <span aria-hidden="true" class="search-icon"></span>
+          <input
+            id="global-search"
+            type="search"
+            placeholder="Find team or player"
+            autocomplete="off"
+            aria-expanded="false"
+            aria-controls="search-results"
+          />
+          <div id="search-results" class="search-results" role="listbox" hidden></div>
+        </div>
+      </div>
       <button
         class="mobile-nav-toggle"
         type="button"

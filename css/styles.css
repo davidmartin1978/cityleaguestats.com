@@ -328,14 +328,19 @@ h3 {
   justify-content: space-between;
   gap: 18px;
   padding: 10px 11px;
+  color: var(--ink);
+  font: inherit;
   text-align: left;
+  text-decoration: none;
   background: transparent;
   border: 0;
   border-radius: 9px;
+  cursor: pointer;
 }
 
 .search-result:hover,
-.search-result:focus-visible {
+.search-result:focus-visible,
+.search-result.is-active {
   background: #eff1e9;
   outline: none;
 }
@@ -368,40 +373,6 @@ h3 {
 
 .search-empty {
   padding: 13px;
-}
-
-.season-control {
-  display: flex;
-  height: 42px;
-  align-items: center;
-  gap: 8px;
-  padding-left: 13px;
-  background: var(--forest);
-  border-radius: 999px;
-}
-
-.season-control span {
-  color: rgba(255, 255, 255, 0.64);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.season-control select {
-  height: 100%;
-  max-width: 160px;
-  padding: 0 34px 0 0;
-  color: #fff;
-  background: transparent;
-  border: 0;
-  outline: none;
-  font-size: 12px;
-  font-weight: 750;
-}
-
-.season-control option {
-  color: var(--ink);
 }
 
 .eyebrow {
@@ -470,6 +441,19 @@ h3 {
   align-items: flex-end;
   justify-content: space-between;
   gap: 50px;
+}
+
+.heading-tools {
+  display: flex;
+  min-width: max-content;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.page-season-control select {
+  min-width: 190px;
 }
 
 .section-meta {
@@ -1636,6 +1620,7 @@ tbody td {
   }
 
   .section-meta,
+  .heading-tools,
   .chart-controls,
   .sandbag-controls {
     justify-self: start;
@@ -1686,8 +1671,7 @@ tbody td {
     font-size: 14px;
   }
 
-  .brand small,
-  .season-control > span {
+  .brand small {
     display: none;
   }
 
@@ -1696,12 +1680,16 @@ tbody td {
     height: 48px;
   }
 
-  .season-control {
-    padding-left: 12px;
+  .heading-tools {
+    width: 100%;
+    min-width: 0;
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .season-control select {
-    max-width: 112px;
+  .page-season-control,
+  .page-season-control select {
+    width: 100%;
   }
 
   .mobile-nav-toggle {
