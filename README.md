@@ -38,6 +38,16 @@ Team scores are treated as net. Numeric player scores are treated as gross, and 
 
 The separate `format-analytics.html` page derives team-net benchmarks directly in the browser. For each format, it presents the best-quartile cutoff as a good day, the median as typical, and the worst-quartile cutoff as a setback. No server-side data processing is required on GitHub Pages.
 
+The standings page also runs a deterministic Monte Carlo forecast after every completed
+week. `js/predictions.js` converts each team score to a field-relative result, estimates
+format-specific weekly volatility and persistent team strength from the other seasons,
+and simulates the remaining schedule. It reports championship, podium, and last-place
+probabilities, splitting probability evenly when simulated teams tie. For the newest
+in-progress season, any unrecorded finale is projected from the modal schedule length
+and round format in the three most recent seasons. Run `node --test
+tests/predictions.test.js` to verify probability totals, seeded stability, schedule
+projection, and final-standings resolution.
+
 The importer also creates a `playerProfiles` index. A profile follows the same player name on the same team identity across seasons, including team names connected in `data/team-name-history.json`. A name on an unrelated team remains a separate profile because the emails do not provide a unique league-wide player ID. The generator turns that index into shareable pages under `players/` and keeps redirect pages for profile URLs based on prior team names. Edit `templates/player-page.html`, `css/player.css`, or `js/player.js`, then rerun the generator when the roster changes.
 
 ## Files
@@ -50,6 +60,7 @@ The importer also creates a `playerProfiles` index. A profile follows the same p
 - `css/formats.css` — format analytics page styles
 - `css/player.css` — player reference page layout
 - `js/app.js` — filtering, derived statistics, and D3 charts
+- `js/predictions.js` — weekly championship, podium, and DFL probability model
 - `js/formats.js` — client-side format benchmarks and range charts
 - `js/navigation.js` — shared responsive navigation behavior
 - `js/player.js` — career summaries, game logs, and player charts

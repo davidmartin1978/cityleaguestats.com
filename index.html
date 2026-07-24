@@ -45,6 +45,7 @@
     <link rel="stylesheet" href="css/styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
     <script src="js/navigation.js" defer></script>
+    <script src="js/predictions.js" defer></script>
     <script src="js/app.js" defer></script>
   </head>
   <body>
@@ -152,6 +153,50 @@
             “Players used” counts golfers with a numeric score or an X-marked round.
             An X counts as played but is excluded from gross and net statistics. Low,
             average, and high caps include every listed golfer with a cap.
+          </p>
+        </div>
+
+        <div class="table-card forecast-card">
+          <div class="card-toolbar forecast-toolbar">
+            <div>
+              <span class="mini-label">Latest forecast</span>
+              <h3 id="prediction-title">Championship Predictions - Jefferson - 2026</h3>
+              <p id="prediction-summary">Calculating the latest probabilities…</p>
+            </div>
+            <span id="prediction-status" class="forecast-status">Modeling</span>
+          </div>
+          <div class="table-scroll">
+            <table
+              id="prediction-table"
+              class="prediction-table"
+              aria-labelledby="prediction-title"
+            >
+              <caption class="sr-only">
+                Latest team championship, podium, and last-place probabilities
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Place</th>
+                  <th scope="col">Team</th>
+                  <th scope="col">Total</th>
+                  <th scope="col">Shots Back</th>
+                  <th scope="col" aria-sort="descending">Championship %</th>
+                  <th scope="col">Podium %</th>
+                  <th scope="col">DFL %</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="forecast-loading" colspan="7">
+                    Simulating the remaining season…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p id="prediction-note" class="table-note">
+            Probabilities use historical league volatility and the number of rounds
+            remaining. DFL means finishing last.
           </p>
         </div>
       </section>

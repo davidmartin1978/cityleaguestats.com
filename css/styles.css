@@ -875,6 +875,118 @@ tbody td {
   font-size: 9px;
 }
 
+.forecast-card {
+  margin-top: 28px;
+}
+
+.forecast-toolbar {
+  align-items: flex-end;
+}
+
+.forecast-toolbar .mini-label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.forecast-status {
+  display: inline-flex;
+  min-height: 29px;
+  align-items: center;
+  padding: 0 10px;
+  color: var(--forest);
+  background: rgba(214, 239, 115, 0.48);
+  border: 1px solid rgba(22, 61, 50, 0.12);
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.prediction-table th:not(:nth-child(2)),
+.prediction-table td:not(:nth-child(2)) {
+  text-align: right;
+}
+
+.prediction-table th:first-child,
+.prediction-table td:first-child {
+  text-align: center;
+}
+
+.prediction-table .forecast-place {
+  color: var(--forest);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.prediction-table .forecast-team {
+  min-width: 210px;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.prediction-table .forecast-total {
+  color: var(--forest);
+  font-weight: 900;
+}
+
+.prediction-table .forecast-back {
+  color: #5c6862;
+  font-weight: 800;
+}
+
+.prediction-table .forecast-favorite {
+  background: rgba(214, 239, 115, 0.13);
+}
+
+.forecast-probability {
+  min-width: 145px;
+}
+
+.probability-value {
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.probability-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.probability-change.is-good {
+  color: #2c7656;
+}
+
+.probability-change.is-bad {
+  color: #b64f3c;
+}
+
+.probability-change.is-neutral {
+  color: #8a948f;
+}
+
+.probability-arrow {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.forecast-loading {
+  height: 110px;
+  color: var(--muted);
+  font-family: var(--sans);
+  text-align: center !important;
+}
+
 .axis text {
   fill: #78837d;
   font-family: var(--sans);
@@ -1708,6 +1820,10 @@ tbody td {
 
   .card-toolbar p {
     display: none;
+  }
+
+  .forecast-toolbar p {
+    display: block;
   }
 
   .search-field input {

@@ -36,6 +36,7 @@
     rankingMode: "players",
     requestedTeamId: null,
     requestedPlayerId: null,
+    forecastRequestId: 0,
   };
 
   const elements = {};
@@ -87,6 +88,11 @@
       "movement-all",
       "movement-chart",
       "movement-legend",
+      "prediction-table",
+      "prediction-title",
+      "prediction-summary",
+      "prediction-status",
+      "prediction-note",
       "player-team",
       "player-select",
       "player-team-name",
@@ -199,6 +205,7 @@
     renderSeasonMeta();
     if (elements.standingsTable) renderStandings();
     if (elements.movementChart) renderMovement();
+    if (elements.predictionTable) schedulePredictionRender();
     if (elements.playerTable) renderPlayerTable();
     if (elements.distributionChart) renderPlayer();
     if (elements.rankingChart) renderRankings();
@@ -283,6 +290,9 @@
     if (elements.standingsTitle) elements.standingsTitle.textContent = `Standings - ${scope}`;
     if (elements.movementTitle) {
       elements.movementTitle.textContent = `Standings Movement by Week - ${scope}`;
+    }
+    if (elements.predictionTitle) {
+      elements.predictionTitle.textContent = `Championship Predictions - ${scope}`;
     }
     if (elements.playerDetailsTitle) {
       elements.playerDetailsTitle.textContent = `Player Details - ${scope}`;
@@ -763,6 +773,184 @@
       fragment.append(button);
     }
     elements.movementLegend.replaceChildren(fragment);
+  }
+
+  function schedulePredictionRender() {
+    const requestId = ++state.forecastRequestId;
+    renderPredictionMessage("Simulating the remaining season…");
+    elements.predictionSummary.textContent = "Calculating the latest probabilities…";
+    elements.predictionStatus.textContent = "Modeling";
+
+    window.setTimeout(() => {
+      if (requestId !== state.forecastRequestId) return;
+      try {
+        if (!window.CityLeaguePredictions) {
+          throw new Error("The prediction model did not load");
+        }
+        const forecast = window.CityLeaguePredictions.runSeasonForecasts(
+          state.store,
+          state.season.id
+        );
+        if (requestId !== state.forecastRequestId) return;
+        renderPredictionTable(forecast);
+      } catch (error) {
+        console.error(error);
+        renderPredictionMessage("The forecast could not be calculated for this season.");
+        elements.predictionSummary.textContent = "Forecast unavailable";
+        elements.predictionStatus.textContent = "Unavailable";
+      }
+    }, 0);
+  }
+
+  function renderPredictionTable(forecast) {
+    const latest = forecast.weeks.at(-1);
+    if (!latest) {
+      renderPredictionMessage("No completed weeks are available for a forecast.");
+      elements.predictionSummary.textContent = "Waiting for the first completed week";
+      elements.predictionStatus.textContent = "Pending";
+      return;
+    }
+
+    const previous = forecast.weeks.at(-2);
+    const previousByTeam = new Map(
+      (previous?.teams || []).map((team) => [team.id, team])
+    );
+    const rows = [...latest.teams].sort(
+      (a, b) =>
+        b.championship - a.championship ||
+        b.podium - a.podium ||
+        a.place - b.place ||
+        a.name.localeCompare(b.name)
+    );
+    const favoriteProbability = rows[0]?.championship;
+    const fragment = document.createDocumentFragment();
+
+    for (const team of rows) {
+      const previousTeam = previousByTeam.get(team.id);
+      const row = document.createElement("tr");
+      row.classList.toggle(
+        "forecast-favorite",
+        Math.abs(team.championship - favoriteProbability) < 0.000001
+      );
+
+      const tiedAtPlace = latest.teams.filter((item) => item.place === team.place).length > 1;
+      appendPredictionCell(row, `${tiedAtPlace ? "T" : ""}${team.place}`, "forecast-place");
+      appendPredictionCell(row, team.name, "forecast-team");
+      appendPredictionCell(row, formatWhole(team.total), "forecast-total");
+      appendPredictionCell(
+        row,
+        team.shotsBack === 0 ? "Lead" : `+${formatWhole(team.shotsBack)}`,
+        "forecast-back"
+      );
+      row.append(
+        predictionProbabilityCell(
+          "Championship",
+          team.championship,
+          previousTeam?.championship,
+          true
+        ),
+        predictionProbabilityCell(
+          "Podium",
+          team.podium,
+          previousTeam?.podium,
+          true
+        ),
+        predictionProbabilityCell("DFL", team.dfl, previousTeam?.dfl, false)
+      );
+      fragment.append(row);
+    }
+
+    elements.predictionTable.tBodies[0].replaceChildren(fragment);
+
+    const remaining = latest.weeksRemaining;
+    const remainingText =
+      remaining === 0
+        ? "season complete"
+        : `${remaining} ${remaining === 1 ? "week" : "weeks"} remaining`;
+    const projectedFormats = [
+      ...new Set(latest.projectedRounds.map((round) => round.format).filter(Boolean)),
+    ];
+    const formatText =
+      projectedFormats.length && remaining > 0
+        ? ` · ${projectedFormats.join(", ")} ahead`
+        : "";
+    elements.predictionSummary.textContent =
+      `After Week ${latest.week} · ${remainingText}${formatText}`;
+    elements.predictionStatus.textContent = remaining === 0 ? "Final" : "Forecast";
+
+    const volatility = forecast.calibration.weeklyVolatilitySd.toFixed(1);
+    elements.predictionNote.textContent =
+      remaining === 0
+        ? "Final probabilities reflect the recorded standings. Tied finishing positions split probability evenly. DFL means finishing last."
+        : `${forecast.simulations.toLocaleString()} deterministic simulations use ${forecast.calibration.trainingSeasons} comparison seasons, a typical ${volatility}-shot weekly field-relative swing, and format-specific volatility. Tied finishing positions split probability evenly. DFL means finishing last.`;
+  }
+
+  function renderPredictionMessage(message) {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.className = "forecast-loading";
+    cell.colSpan = 7;
+    cell.textContent = message;
+    row.append(cell);
+    elements.predictionTable.tBodies[0].replaceChildren(row);
+  }
+
+  function appendPredictionCell(row, value, className) {
+    const cell = document.createElement("td");
+    cell.className = className;
+    cell.textContent = value;
+    row.append(cell);
+  }
+
+  function predictionProbabilityCell(label, value, previousValue, positiveIsGood) {
+    const cell = document.createElement("td");
+    cell.className = "forecast-probability";
+
+    const probability = document.createElement("strong");
+    probability.className = "probability-value";
+    probability.textContent = formatProbability(value);
+    cell.append(probability);
+
+    const change = document.createElement("span");
+    change.className = "probability-change";
+    if (!isNumber(previousValue)) {
+      change.classList.add("is-neutral");
+      change.textContent = "First forecast";
+      cell.append(change);
+      return cell;
+    }
+
+    const delta = value - previousValue;
+    if (Math.abs(delta) < 0.05) {
+      change.classList.add("is-neutral");
+      change.textContent = "— 0.0 pp";
+      change.setAttribute("aria-label", `${label} probability did not change`);
+      cell.append(change);
+      return cell;
+    }
+
+    const favorable = positiveIsGood ? delta > 0 : delta < 0;
+    change.classList.add(favorable ? "is-good" : "is-bad");
+    const arrow = document.createElement("span");
+    arrow.className = "probability-arrow";
+    arrow.setAttribute("aria-hidden", "true");
+    arrow.textContent = delta > 0 ? "↑" : "↓";
+    const points = document.createElement("span");
+    points.textContent = `${delta > 0 ? "+" : "−"}${Math.abs(delta).toFixed(1)} pp`;
+    change.setAttribute(
+      "aria-label",
+      `${label} probability ${delta > 0 ? "increased" : "decreased"} by ${Math.abs(delta).toFixed(1)} percentage points`
+    );
+    change.append(arrow, points);
+    cell.append(change);
+    return cell;
+  }
+
+  function formatProbability(value) {
+    if (!isNumber(value) || value <= 0) return "0.0%";
+    if (value < 0.05) return "<0.1%";
+    if (value < 100 && value > 99.95) return ">99.9%";
+    return `${value.toFixed(1)}%`;
   }
 
   function renderPlayer() {
